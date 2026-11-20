@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ETF Timing Dashboard — Data Authenticity &amp; Diagnostics Audit</title>
+<style>
+:root{--bg:#f4f6f9;--surface:#fff;--surface2:#f8fafc;--surface3:#eef3fa;--ink:#1a2233;--ink2:#4a5568;--muted:#7b8798;--line:#e2e8f0;--accent:#1f5fd0;--green:#16a34a;--red:#dc2626;--amber:#f59e0b;--purple:#8b5cf6;--shadow:0 1px 3px rgba(15,23,42,.07),0 6px 20px rgba(15,23,42,.05)}
+body[data-theme="dark"]{--bg:#0e1420;--surface:#161e2d;--surface2:#1b2637;--surface3:#223049;--ink:#e8eef7;--ink2:#b6c2d4;--muted:#8493a8;--line:#2a3850;--accent:#5a9bff;--green:#34d399;--red:#ff6b6b;--amber:#fbbf24;--purple:#a78bfa;--shadow:0 1px 3px rgba(0,0,0,.3)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:13px;line-height:1.65}
+.wrap{max-width:1120px;margin:0 auto;padding:20px 14px 70px}
+header{background:linear-gradient(135deg,#12336b,#1f5fd0);color:#fff;border-radius:16px;padding:24px 22px;position:relative;overflow:hidden}
+header h1{margin:0 0 6px;font-size:23px;letter-spacing:-.4px}
+header p{margin:0;opacity:.9;font-size:12.5px;max-width:760px}
+.icon-btn{position:absolute;right:18px;top:18px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:9px;width:36px;height:36px;cursor:pointer;font-size:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:17px;margin:15px 0;box-shadow:var(--shadow)}
+.card h2{font-size:16px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.card h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+h3{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink2);margin:18px 0 8px}
+p{margin:7px 0}
+.hint{color:var(--muted);font-size:11.5px}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+@media(min-width:700px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
+.kpi .v{font-size:19px;font-weight:780;color:var(--accent)}.kpi .l{font-size:10px;color:var(--muted);margin-top:3px}
+.kpi.green .v{color:var(--green)}.kpi.red .v{color:var(--red)}
+table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:8px}
+th{font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);text-align:left;padding:8px;border-bottom:2px solid var(--line);white-space:nowrap}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.mono,code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px}
+.scroll{overflow-x:auto}
+.ok{color:var(--green);font-weight:700}.bad{color:var(--red);font-weight:700}.warnv{color:var(--amber);font-weight:700}
+.box{padding:12px 14px;border-radius:10px;margin:12px 0;font-size:12px}
+.box.good{background:rgba(22,163,74,.09);border:1px solid rgba(22,163,74,.35);color:var(--green)}
+.box.bad{background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.4);color:var(--red)}
+.box.info{background:var(--surface3);border:1px solid var(--line);color:var(--ink2)}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.4px}
+.tag.g{background:rgba(22,163,74,.16);color:var(--green)}.tag.r{background:rgba(220,38,38,.14);color:var(--red)}.tag.a{background:rgba(245,158,11,.16);color:var(--amber)}
+.flow{width:100%;overflow-x:auto;margin-top:10px}.flow svg{min-width:700px;width:100%;height:auto}
+ul{margin:6px 0 6px 18px;padding:0}li{margin:4px 0}
+footer{color:var(--muted);font-size:10.5px;text-align:center;margin-top:26px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Data Authenticity &amp; Diagnostics Audit</h1>
+  <p>Full review of the ETF Timing Dashboard's Generate Score workflow: where it can fail, how to prove whether Yahoo Finance data is genuinely retrieved, and what was added so a non-technical user can see everything without browser Developer Tools.</p>
+  <button class="icon-btn" onclick="document.body.dataset.theme=document.body.dataset.theme==='dark'?'light':'dark'" title="Toggle theme">🌙</button>
+</header>
+
+<div class="card">
+  <h2><span class="dot"></span>1. Executive finding</h2>
+  <div class="box good"><b>Live retrieval does work in this build.</b> A real-network test on <b>16 Nov 2026</b> fetched all six symbols directly from Yahoo Finance — SPY 387 bars, QQQ 387, ^VIX 389, TLT 387, ^TNX 387, ^IRX 387 — every response passed <code>meta.symbol</code> verification, producing a live score of <b>71 / 100 (Buy) at 100% confidence</b>.</div>
+  <p>The reported symptom — "Could not generate score" with no explanation — was a <b>visibility problem, not a data problem</b>. The previous code caught every exception and printed a single generic line, while all HTTP status, latency, response bodies and source decisions were only available in the browser console and Network tab.</p>
+  <p>This release keeps the validated scoring engine untouched and adds a complete diagnostic substrate: every fetch attempt, parse, fallback and render step is written to an on-page log, with raw provider bodies, per-symbol validation, provider health, a 50-entry audit log and a one-glance transparency report.</p>
+  <div class="kpis">
+    <div class="kpi green"><div class="v">6 / 6</div><div class="l">Symbols fetched live (real test)</div></div>
+    <div class="kpi green"><div class="v">100%</div><div class="l">Live-data confidence</div></div>
+    <div class="kpi"><div class="v">517 / 524</div><div class="l">Tests passed (offline / with live)</div></div>
+    <div class="kpi"><div class="v">0</div><div class="l">Scoring-rule changes</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2><span class="dot"></span>2. Complete workflow and failure-point map</h2>
+  <p class="hint">User Click → Fetch Data → Parse Response → Validate Data → Calculate Indicators → Compute Score → Render Dashboard. Each transition is instrumented.</p>
+  <div class="flow">
+    <svg viewBox="0 0 1050 170" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7b8798"/></marker></defs>
+      <g font-family="system-ui,sans-serif">
+        <g><rect x="4" y="26" width="138" height="58" rx="9" fill="#e8f0fe" stroke="#1f5fd0"/><text x="73" y="50" text-anchor="middle" font-size="11" font-weight="700">1. User click</text><text x="73" y="67" text-anchor="middle" font-size="9">date + button</text></g>
+        <g><rect x="154" y="26" width="138" height="58" rx="9" fill="#e8f0fe" stroke="#1f5fd0"/><text x="223" y="50" text-anchor="middle" font-size="11" font-weight="700">2. Fetch</text><text x="223" y="67" text-anchor="middle" font-size="9">6 symbols + retries</text></g>
+        <g><rect x="304" y="26" width="138" height="58" rx="9" fill="#e8f0fe" stroke="#1f5fd0"/><text x="373" y="50" text-anchor="middle" font-size="11" font-weight="700">3. Parse</text><text x="373" y="67" text-anchor="middle" font-size="9">JSON + symbol check</text></g>
+        <g><rect x="454" y="26" width="138" height="58" rx="9" fill="#e8f0fe" stroke="#1f5fd0"/><text x="523" y="50" text-anchor="middle" font-size="11" font-weight="700">4. Validate</text><text x="523" y="67" text-anchor="middle" font-size="9">source + staleness</text></g>
+        <g><rect x="604" y="26" width="138" height="58" rx="9" fill="#e8f0fe" stroke="#1f5fd0"/><text x="673" y="50" text-anchor="middle" font-size="11" font-weight="700">5. Calculate</text><text x="673" y="67" text-anchor="middle" font-size="9">no-look-ahead</text></g>
+        <g><rect x="754" y="26" width="138" height="58" rx="9" fill="#e8f0fe" stroke="#1f5fd0"/><text x="823" y="50" text-anchor="middle" font-size="11" font-weight="700">6. Score</text><text x="823" y="67" text-anchor="middle" font-size="9">engine + signals</text></g>
+        <g><rect x="904" y="26" width="138" height="58" rx="9" fill="#e8f0fe" stroke="#1f5fd0"/><text x="973" y="50" text-anchor="middle" font-size="11" font-weight="700">7. Render</text><text x="973" y="67" text-anchor="middle" font-size="9">score + audit panels</text></g>
+        <path d="M143,55 L153,55" stroke="#7b8798" stroke-width="1.4" marker-end="url(#ar)"/>
+        <path d="M293,55 L303,55" stroke="#7b8798" stroke-width="1.4" marker-end="url(#ar)"/>
+        <path d="M443,55 L453,55" stroke="#7b8798" stroke-width="1.4" marker-end="url(#ar)"/>
+        <path d="M593,55 L603,55" stroke="#7b8798" stroke-width="1.4" marker-end="url(#ar)"/>
+        <path d="M743,55 L753,55" stroke="#7b8798" stroke-width="1.4" marker-end="url(#ar)"/>
+        <path d="M893,55 L903,55" stroke="#7b8798" stroke-width="1.4" marker-end="url(#ar)"/>
+        <text x="73" y="108" text-anchor="middle" font-size="9" fill="#dc2626">no date</text>
+        <text x="223" y="108" text-anchor="middle" font-size="9" fill="#dc2626">CORS · timeout · 429/404/5xx</text>
+        <text x="373" y="108" text-anchor="middle" font-size="9" fill="#dc2626">bad JSON · wrong symbol</text>
+        <text x="523" y="108" text-anchor="middle" font-size="9" fill="#dc2626">missing · stale · no coverage</text>
+        <text x="673" y="108" text-anchor="middle" font-size="9" fill="#dc2626">&lt;252 SPY / &lt;126 TLT bars</text>
+        <text x="823" y="108" text-anchor="middle" font-size="9" fill="#dc2626">invalid / non-finite value</text>
+        <text x="973" y="108" text-anchor="middle" font-size="9" fill="#dc2626">ECharts / DOM failure</text>
+        <text x="525" y="143" text-anchor="middle" font-size="10" fill="#7b8798">Every phase emits a step to the on-page Fetch Debug Panel.</text>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <h2><span class="dot"></span>3. Failure points and the new user-visible messages</h2>
+  <div class="scroll"><table>
+    <tr><th>Phase</th><th>Failure</th><th>Before (user saw)</th><th>After (user sees)</th></tr>
+    <tr><td>Fetch</td><td>Browser CORS / network</td><td class="mono">Could not generate score</td><td>CORS blocked by browser, or the network is unreachable…</td></tr>
+    <tr><td>Fetch</td><td>Rate limit</td><td class="mono">…failed after 3 attempts (HTTP 429)</td><td>Yahoo Finance returned HTTP 429 (rate limit). Wait a moment and retry.</td></tr>
+    <tr><td>Fetch</td><td>Abort timer</td><td class="mono">…(AbortError)</td><td>Timeout after 9000ms while contacting Yahoo Finance. No stale value was substituted.</td></tr>
+    <tr><td>Parse</td><td>HTML / truncated body</td><td class="mono">…(Unexpected token &lt;)</td><td>Response JSON invalid — the provider returned HTML, a challenge page, or a truncated payload.</td></tr>
+    <tr><td>Parse</td><td>Wrong returned symbol</td><td class="mono">Symbol mismatch: …</td><td>Provider symbol verification failed… No score was generated from unverified data.</td></tr>
+    <tr><td>Validate</td><td>Missing input</td><td class="mono">Required market input(s) unavailable…</td><td>Required market symbol missing — … (names the exact symbols)</td></tr>
+    <tr><td>Calculate</td><td>Insufficient history</td><td class="mono">SPY: need at least 252 prior trading days…</td><td>Indicator calculation failed — SPY: need at least 252 prior trading days…</td></tr>
+    <tr><td>Render</td><td>ECharts CDN blocked</td><td class="bad">Entire app crashed on init</td><td>In-page notice: chart library unavailable; score, signals and audit panels still work.</td></tr>
+  </table></div>
+</div>
+
+<div class="card">
+  <h2><span class="dot"></span>4. Data authenticity — how to prove it in the UI</h2>
+  <p>Three independent views now answer "is this real live data?" without any developer tooling:</p>
+  <ul>
+    <li><b>Test Live Market Data</b> — tests all six symbols with no score calculation; prints ✅/❌ per symbol with HTTP status, latency and last bar date, plus an overall <i>Live Data Available / Partial Retrieval / Live Data Unavailable</i> verdict.</li>
+    <li><b>Raw Provider Response Viewer</b> — the first 200 lines of the actual Yahoo JSON, with retrieved symbol, payload size, HTTP status, verification result and timestamp.</li>
+    <li><b>Final Transparency Report</b> — shown under every score: source type, provider, retrieval timestamp, market date, live/embedded symbol lists, confidence and verification status.</li>
+  </ul>
+  <h3>Real-network evidence (16 Nov 2026)</h3>
+  <div class="scroll"><table>
+    <tr><th>Symbol</th><th>Requested URL symbol</th><th>Returned <code>meta.symbol</code></th><th>Bars</th><th>Verified</th></tr>
+    <tr><td>SPY</td><td class="mono">SPY</td><td class="mono">SPY</td><td>387</td><td class="ok">Yes</td></tr>
+    <tr><td>QQQ</td><td class="mono">QQQ</td><td class="mono">QQQ</td><td>387</td><td class="ok">Yes</td></tr>
+    <tr><td>VIX</td><td class="mono">^VIX → %5EVIX</td><td class="mono">^VIX</td><td>389</td><td class="ok">Yes</td></tr>
+    <tr><td>TLT</td><td class="mono">TLT</td><td class="mono">TLT</td><td>387</td><td class="ok">Yes</td></tr>
+    <tr><td>TNX</td><td class="mono">^TNX → %5ETNX</td><td class="mono">^TNX</td><td>387</td><td class="ok">Yes</td></tr>
+    <tr><td>IRX</td><td class="mono">^IRX → %5EIRX</td><td class="mono">^IRX</td><td>387</td><td class="ok">Yes</td></tr>
+  </table></div>
+  <p class="hint">Caret symbols are URL-encoded exactly once. A previous double-encoding bug produced <code>%255EVIX</code> and HTTP 404; it remains fixed and is regression-tested.</p>
+</div>
+
+<div class="card">
+  <h2><span class="dot"></span>5. Changes made</h2>
+  <div class="scroll"><table>
+    <tr><th>Objective</th><th>Implementation</th><th>Status</th></tr>
+    <tr><td>Root-cause diagnosis</td><td>7-phase flow diagram with failure annotations, embedded in the Diagnostics tab and this report</td><td><span class="tag g">Done</span></td></tr>
+    <tr><td>Data authenticity</td><td>Per-score source type, provider, timestamp, observation date, symbol verification in the Transparency Report and Audit Panel</td><td><span class="tag g">Done</span></td></tr>
+    <tr><td>Live Connection Tester</td><td>New button; six-symbol test with ✅/❌, reason and overall verdict; no score calculated</td><td><span class="tag g">Done</span></td></tr>
+    <tr><td>Fetch Debug Panel</td><td>Live step log with URL, HTTP status, latency, returned symbol, source and reason; inline on Date Explorer too</td><td><span class="tag g">Done</span></td></tr>
+    <tr><td>Better errors</td><td><code>classifyFetchError</code> + <code>friendlyError</code> map exceptions to specific messages and name the failing phase</td><td><span class="tag g">Done</span></td></tr>
+    <tr><td>Raw Response Viewer</td><td>Expandable per-symbol panel, first 200 lines, size, symbol, verification, timestamp</td><td><span class="tag g">Done</span></td></tr>
+    <tr><td>Data Validation Panel</td><td>Requested vs returned symbol, value, observation date, verdict; warns on mismatch/missing/stale</td><td><span class="tag g">Done</span></td></tr>
+    <tr><td>Provider health</td><td>Reachable/unreachable, average latency, last success/failure, per-symbol stats; persisted locally</td><td><span class="tag g">Done</span></td></tr>
+    <tr><td>Audit log</td><td>Last 50 attempts with source mix, success/failure, error reason, confidence; persisted locally</td><td><span class="tag g">Done</span></td></tr>
+    <tr><td>Final Transparency Report</td><td>One card under every score with all authenticity fields</td><td><span class="tag g">Done</span></td></tr>
+  </table></div>
+</div>
+
+<div class="card">
+  <h2><span class="dot"></span>6. Bugs found and fixed in this pass</h2>
+  <div class="scroll"><table>
+    <tr><th>#</th><th>Issue</th><th>Impact</th><th>Fix</th></tr>
+    <tr><td>1</td><td>Generic "Could not generate score" swallowed every cause</td><td>High — users could not tell live from embedded, or why it failed</td><td>Phase tracking + classified, specific messages</td></tr>
+    <tr><td>2</td><td>No visibility of HTTP status, latency or provider body</td><td>High — data authenticity unverifiable in UI</td><td>Instrumented fetch with debug log + raw viewer</td></tr>
+    <tr><td>3</td><td>Missing ECharts CDN crashed <code>init()</code></td><td>Medium — whole dashboard unusable offline</td><td><code>getChart()</code> guard with in-page notice</td></tr>
+    <tr><td>4</td><td>No way to test connectivity without generating a score</td><td>Medium — diagnosis required a full workflow</td><td>Dedicated Live Connection Tester</td></tr>
+    <tr><td>5</td><td>"No usable market data" warning was replaced by the classified CORS cause</td><td>Low — user might not see that no score was generated</td><td>Both statements are now combined</td></tr>
+    <tr><td>6</td><td>SVG label typo ("paypload")</td><td>Cosmetic</td><td>Corrected</td></tr>
+  </table></div>
+  <p class="hint">No scoring logic, indicator maths, bands, charts, themes or backtest data were changed.</p>
+</div>
+
+<div class="card">
+  <h2><span class="dot"></span>7. Validation</h2>
+  <ul>
+    <li><b>517 / 517</b> offline checks pass; <b>521 / 521</b> with the real Yahoo network test; <code>node --check</code> clean.</li>
+    <li>Coverage added this pass: failure classification (429, CORS, timeout, invalid JSON, symbol mismatch), connection tester all-success/partial/all-fail, raw response capture and 200-line cap, step log contents, validation table, transparency report for live and mixed scores, provider health, 50-entry audit log cap, localStorage persistence, and graceful behaviour when the chart library is missing.</li>
+    <li>Pre-existing coverage retained: live success, embedded fallback, partial fallback, staleness, source attribution, score reproducibility across 113 dates (max difference 0.000), no-look-ahead, trading-date resolution, retry backoff, trend analytics.</li>
+  </ul>
+  <p class="hint">Run: <code>node test_dashboard_v2.js</code> or <code>node test_dashboard_v2.js --live</code>.</p>
+</div>
+
+<div class="card">
+  <h2><span class="dot"></span>8. How to use</h2>
+  <ol>
+    <li>Open <code>ETF_Timing_Dashboard.html</code>. For live data, serve the folder with <code>python -m http.server 8000</code> — <code>file://</code> commonly blocks cross-origin fetches.</li>
+    <li>Open the <b>🩺 Diagnostics</b> tab and press <b>Test Live Market Data</b>. Check the ✅/❌ grid and overall verdict.</li>
+    <li>Press <b>Generate Score</b> in Date Explorer. Expand <b>Fetch diagnostics</b> directly under the button for the step-by-step log.</li>
+    <li>Read the <b>Final Transparency Report</b> card under the score to see live vs embedded sources.</li>
+    <li>Use <b>Market Data Audit</b> for per-metric provenance and verification links; the Diagnostics tab holds raw responses, validation, health and the audit log.</li>
+  </ol>
+</div>
+
+<div class="card">
+  <h2><span class="dot"></span>9. Remaining limitations</h2>
+  <ul>
+    <li><b>Browser CORS:</b> from <code>file://</code>, Yahoo requests may be blocked. The app reports this clearly and falls back to labelled embedded data; an optional <code>proxyEndpoint</code> hook exists for a backend proxy.</li>
+    <li><b>Fed Funds:</b> FRED is unreachable in this environment; the model uses an IRX/TLT proxy. The audit panel states "Not available" and links to FRED rather than inventing a value.</li>
+    <li><b>Raw response cap:</b> the viewer shows the first 200 lines per symbol; full bodies are not retained.</li>
+    <li><b>Local storage:</b> health and audit-log history are per-browser and can be cleared by the user or private-mode settings.</li>
+    <li><b>Health accounting:</b> each retry attempt counts as an attempt, so transient failures may lower the success ratio even when a later retry succeeds.</li>
+    <li><b>Trend analytics</b> still derive from the embedded score history ending 2026-11-13; markers for newer dates land on the last available embedded observation.</li>
+  </ul>
+</div>
+
+<footer>
+  Disclaimer: research and educational use only; not investment advice. Past performance does not predict future returns.<br>
+  Generated as part of the ETF Timing Dashboard audit — scoring methodology unchanged.
+</footer>
+</div>
+</body>
+</html>

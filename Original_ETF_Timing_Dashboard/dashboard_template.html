@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETF Timing Dashboard — evidence-first decision support</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#f4f6f9; --surface:#fff; --surface2:#f8fafc; --surface3:#eef3fa;
+  --ink:#1a2233; --ink2:#4a5568; --muted:#7b8798; --line:#e2e8f0; --line2:#cbd5e1;
+  --accent:#1f5fd0; --accentSoft:#e8f0fe;
+  --blue:#3b82f6; --green:#16a34a; --red:#dc2626; --amber:#d97706; --purple:#8b5cf6; --teal:#0d9488;
+  --shadow:0 1px 3px rgba(15,23,42,.07),0 6px 20px rgba(15,23,42,.05);
+  --radius:12px;
+}
+[data-theme="dark"]{
+  --bg:#0e1420; --surface:#161e2d; --surface2:#1b2637; --surface3:#223049;
+  --ink:#e8eef7; --ink2:#b6c2d4; --muted:#8493a8; --line:#2a3850; --line2:#3a4a66;
+  --accent:#5a9bff; --accentSoft:#1c3252;
+  --blue:#5a9bff; --green:#34d399; --red:#ff6b6b; --amber:#fbbf24; --purple:#a78bfa; --teal:#2dd4bf;
+  --shadow:0 1px 3px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1300px;margin:0 auto;padding:12px 10px 56px}
+a{color:var(--accent)}
+header{background:linear-gradient(135deg,#12325f,#1f5fd0);color:#fff;border-radius:14px;padding:18px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+header::after{content:"";position:absolute;right:-40px;top:-40px;width:170px;height:170px;border-radius:50%;background:rgba(255,255,255,.06)}
+header h1{font-size:18px;line-height:1.3;font-weight:720;letter-spacing:-.3px;position:relative;z-index:1}
+header .sub{font-size:11.5px;opacity:.9;margin-top:6px;max-width:760px;position:relative;z-index:1}
+.hdr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;position:relative;z-index:2}
+.icon-btn{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;width:36px;height:36px;border-radius:9px;cursor:pointer;font-size:16px;flex-shrink:0}
+.hdr-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:10.5px;opacity:.85;position:relative;z-index:1}
+.pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);padding:2px 8px;border-radius:20px}
+.navtabs{display:flex;gap:4px;overflow-x:auto;margin:12px 0 6px;padding-bottom:4px;scrollbar-width:none}
+.navtabs::-webkit-scrollbar{display:none}
+.navtab{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);color:var(--ink2);padding:7px 12px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:.15s}
+.navtab:hover{border-color:var(--line2)}
+.navtab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.section{display:none;animation:fade .25s ease}
+.section.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
+.card h2{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px;margin-bottom:4px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block;flex-shrink:0}
+.hint{font-size:11px;color:var(--muted);line-height:1.5}
+.grid{display:grid;gap:10px}
+.cols-3{grid-template-columns:1fr}
+.cols-2{grid-template-columns:1fr}
+@media(min-width:760px){.cols-3{grid-template-columns:repeat(3,1fr)}.cols-2{grid-template-columns:repeat(2,1fr)}}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.kpi{background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:9px 10px}
+.kpi .lab{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.kpi .val{font-size:21px;font-weight:800;line-height:1.15;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi .sub2{font-size:10px;color:var(--muted);margin-top:1px}
+.big{font-size:26px}
+.tag{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--surface3);color:var(--ink2);letter-spacing:.3px}
+.tone-green{color:var(--green)}.tone-red{color:var(--red)}.tone-amber{color:var(--amber)}
+.tone-blue{color:var(--blue)}.tone-teal{color:var(--teal)}.tone-purple{color:var(--purple)}.tone-muted{color:var(--muted)}
+.chart{width:100%;height:260px}
+.chart.sm{height:190px}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th,td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tbody tr:hover{background:var(--surface2)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.note{font-size:11.5px;background:var(--surface3);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:9px 11px;margin-top:10px;color:var(--ink2)}
+.note.warn{background:#fff7ed;border-left-color:#d97706;color:#7c2d12}
+[data-theme="dark"] .note.warn{background:#3a2a12;color:#fbbf24}
+.badge{display:inline-block;font-size:9.5px;font-weight:800;padding:1px 6px;border-radius:5px}
+.b-pass{background:rgba(22,163,74,.14);color:var(--green)}
+.b-warn{background:rgba(217,119,6,.16);color:var(--amber)}
+.b-fail{background:rgba(220,38,38,.14);color:var(--red)}
+.seg{display:inline-flex;gap:2px;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:2px}
+.seg button{border:0;background:none;color:var(--ink2);font-size:11px;font-weight:600;padding:4px 9px;border-radius:6px;cursor:pointer}
+.seg button.on{background:var(--accent);color:#fff}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:4px;display:block}
+.bar>i{display:block;height:100%;background:var(--accent)}
+.quad{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.quad .cell{border:1px solid var(--line);border-radius:8px;padding:8px;font-size:10.5px;color:var(--ink2);background:var(--surface2)}
+.quad .cell.on{border-color:var(--accent);background:var(--accentSoft);color:var(--ink);font-weight:600;box-shadow:0 0 0 1px var(--accent) inset}
+.quad .cell b{display:block;font-size:11px;color:var(--ink);margin-bottom:2px}
+details{border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:var(--surface2);margin-top:8px}
+summary{cursor:pointer;font-weight:700;font-size:12px}
+details .body{margin-top:8px;font-size:11.5px;color:var(--ink2);line-height:1.6}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;background:var(--surface3);padding:1px 5px;border-radius:4px}
+ul{margin:6px 0 0 18px;font-size:11.5px;color:var(--ink2)}
+li{margin:3px 0}
+.flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.spread{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="hdr-top">
+    <div>
+      <h1>ETF Timing Dashboard <span class="tag" style="background:rgba(255,255,255,.18);color:#fff">v4 · purged walk-forward</span></h1>
+      <div class="sub">Three separate measures — a calibrated probability, a relative Opportunity Score and a Timing Percentile — with the uncertainty and the failures shown, not hidden. Educational research only.</div>
+    </div>
+    <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">◐</button>
+  </div>
+  <div class="hdr-meta" id="hdrMeta"></div>
+</header>
+
+<nav class="navtabs" id="navTabs">
+  <button class="navtab on" data-s="overview" onclick="nav('overview')">Overview</button>
+  <button class="navtab" data-s="calib" onclick="nav('calib')">Calibration</button>
+  <button class="navtab" data-s="opp" onclick="nav('opp')">Opportunity</button>
+  <button class="navtab" data-s="bench" onclick="nav('bench')">Benchmarks</button>
+  <button class="navtab" data-s="analog" onclick="nav('analog')">Analogues</button>
+  <button class="navtab" data-s="signals" onclick="nav('signals')">Signal tests</button>
+  <button class="navtab" data-s="method" onclick="nav('method')">Methodology</button>
+  <button class="navtab" data-s="data" onclick="nav('data')">Data &amp; sectors</button>
+</nav>
+
+<!-- ================= OVERVIEW ================= -->
+<div class="section on" id="s-overview">
+  <div class="grid cols-3">
+
+    <div class="card">
+      <h2><span class="dot" style="background:var(--blue)"></span>Market outlook</h2>
+      <p class="hint">Literally the share of similar past states followed by a positive 6-month total return. It is not a price target.</p>
+      <div class="kpi-grid" style="margin-top:10px">
+        <div class="kpi" style="grid-column:1/-1">
+          <div class="lab">P(positive 6M return)</div>
+          <div class="val big" id="kProb">—</div>
+          <div class="sub2" id="kProbSub">—</div>
+        </div>
+        <div class="kpi"><div class="lab">Expected 6M</div><div class="val" id="kExp">—</div><div class="sub2">model estimate</div></div>
+        <div class="kpi"><div class="lab">Median 6M</div><div class="val" id="kMed">—</div><div class="sub2">residual median</div></div>
+        <div class="kpi"><div class="lab">P(loss &gt; 10%)</div><div class="val" id="kLoss">—</div><div class="sub2">downside tail</div></div>
+        <div class="kpi"><div class="lab">Expected shortfall</div><div class="val" id="kES">—</div><div class="sub2">worst decile</div></div>
+      </div>
+      <div class="note" id="kProbNote"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot" style="background:var(--green)"></span>Entry opportunity</h2>
+      <p class="hint">Relative attractiveness versus its own history. Higher always means a more attractive entry — but this is not a probability.</p>
+      <div class="kpi-grid" style="margin-top:10px">
+        <div class="kpi" style="grid-column:1/-1">
+          <div class="lab">Opportunity score</div>
+          <div class="val big" id="kOpp">—</div>
+          <div class="sub2" id="kOppSub">—</div>
+        </div>
+        <div class="kpi"><div class="lab">Timing pct (10y)</div><div class="val" id="kT10">—</div><div class="sub2">vs last 10 years</div></div>
+        <div class="kpi"><div class="lab">Timing pct (5y)</div><div class="val" id="kT5">—</div><div class="sub2">vs last 5 years</div></div>
+        <div class="kpi"><div class="lab">Dislocation</div><div class="val" id="kDis">—</div><div class="sub2">drawdown family</div></div>
+        <div class="kpi"><div class="lab">Downside safety</div><div class="val" id="kDown">—</div><div class="sub2">inverted tail risk</div></div>
+      </div>
+      <div class="note" id="kOppNote"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot" style="background:var(--purple)"></span>Decision context</h2>
+      <p class="hint">How much the evidence supports acting at all. Grade C or D suppresses confident language regardless of the score.</p>
+      <div class="kpi-grid" style="margin-top:10px">
+        <div class="kpi" style="grid-column:1/-1">
+          <div class="lab">Conviction grade</div>
+          <div class="val big" id="kGrade">—</div>
+          <div class="sub2" id="kGradeSub">—</div>
+        </div>
+        <div class="kpi"><div class="lab">Regime</div><div class="val" id="kRegime" style="font-size:16px">—</div><div class="sub2">internal signals</div></div>
+        <div class="kpi"><div class="lab">Data age</div><div class="val" id="kAge" style="font-size:16px">—</div><div class="sub2">days</div></div>
+        <div class="kpi" style="grid-column:1/-1"><div class="lab">Component agreement</div><div class="bar"><i id="kAgreeBar" style="width:0%"></i></div><div class="sub2" id="kAgreeTxt">—</div></div>
+      </div>
+      <div class="quad" id="quad"></div>
+      <div class="note" id="matrixNote"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="spread">
+      <h2><span class="dot"></span>History — three measures, deliberately separate</h2>
+      <div class="seg" id="rangeSeg">
+        <button data-r="252" onclick="setRange(252)">1y</button>
+        <button data-r="756" onclick="setRange(756)">3y</button>
+        <button data-r="1260" onclick="setRange(1260)">5y</button>
+        <button data-r="2520" onclick="setRange(2520)">10y</button>
+        <button data-r="0" class="on" onclick="setRange(0)">All</button>
+      </div>
+    </div>
+    <div id="chartMain" class="chart" style="height:320px"></div>
+    <div class="hint" id="chartNote" style="margin-top:6px"></div>
+  </div>
+
+  <div class="grid cols-2">
+    <div class="card">
+      <h2><span class="dot"></span>Where today sits in its own history</h2>
+      <p class="hint">Percentile of the current reading within a trailing window, for each measure separately. A high probability is not a high opportunity.</p>
+      <div id="chartHist" class="chart sm"></div>
+      <div id="histNote" class="hint"></div>
+    </div>
+    <div class="card">
+      <h2><span class="dot"></span>Plain reading</h2>
+      <div id="plainReading"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CALIBRATION ================= -->
+<div class="section" id="s-calib">
+  <div class="card">
+    <h2><span class="dot"></span>Is the probability honest?</h2>
+    <div class="flex" style="margin:8px 0">
+      <span class="badge" id="calibBadge">—</span>
+      <span class="hint" id="calibVerdict"></span>
+    </div>
+    <div class="kpi-grid" id="calibKpis"></div>
+    <div class="note" id="calibNote"></div>
+  </div>
+
+  <div class="grid cols-2">
+    <div class="card"><h2><span class="dot"></span>Reliability curve</h2><div id="chartRel" class="chart sm"></div>
+      <p class="hint">Predicted vs realised. Perfect calibration lies on the diagonal. Bins with too few independent episodes are merged automatically.</p></div>
+    <div class="card"><h2><span class="dot"></span>Prediction distribution</h2><div id="chartDist" class="chart sm"></div>
+      <p class="hint">The probability is reported in its natural units and clusters where the base rate lives. It is never stretched to fill 0–100.</p></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>Calibration methods, scored out of sample</h2>
+    <p class="hint">Each method re-runs the identical purged walk-forward; only the calibrator changes. Selection happens on validation data, so this table is the evidence behind that choice, not an input to it.</p>
+    <div class="scroll"><table id="tblMethods"></table></div>
+    <div class="note" id="methodNote"></div>
+  </div>
+
+  <div class="grid cols-3">
+    <div class="card"><h2><span class="dot"></span>By decade</h2><div class="scroll"><table id="tblDecade"></table></div></div>
+    <div class="card"><h2><span class="dot"></span>By regime</h2><div class="scroll"><table id="tblRegime"></table></div></div>
+    <div class="card"><h2><span class="dot"></span>By volatility tercile</h2><div class="scroll"><table id="tblVol"></table></div></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>Walk-forward blocks</h2>
+    <p class="hint">Every prediction shown here came from a model whose training data ended before the block it scored. "Purged" counts training samples dropped because their 6-month label overlapped the validation window.</p>
+    <div class="scroll"><table id="tblBlocks"></table></div>
+  </div>
+</div>
+
+<!-- ================= OPPORTUNITY ================= -->
+<div class="section" id="s-opp">
+  <div class="card">
+    <h2><span class="dot"></span>Opportunity score construction</h2>
+    <p class="hint">Five families, each a point-in-time percentile. Correlated inputs are grouped first so one idea is not counted four times.</p>
+    <div class="scroll"><table id="tblFam"></table></div>
+    <div class="note" id="oppNote"></div>
+  </div>
+  <div class="grid cols-2">
+    <div class="card"><h2><span class="dot"></span>Family contributions today</h2><div id="chartFam" class="chart sm"></div></div>
+    <div class="card"><h2><span class="dot"></span>Sensitivity to the weights</h2><div class="scroll"><table id="tblSens"></table></div>
+      <p class="hint">Alternative plausible weightings. High rank correlation means the ordering is not an artefact of the chosen numbers.</p></div>
+  </div>
+  <div class="card">
+    <h2><span class="dot"></span>Opportunity history</h2>
+    <div id="chartOppHist" class="chart"></div>
+  </div>
+</div>
+
+<!-- ================= BENCHMARKS ================= -->
+<div class="section" id="s-bench">
+  <div class="card">
+    <h2><span class="dot"></span>Does timing beat just buying?</h2>
+    <p class="hint" id="benchWindow"></p>
+    <div class="scroll"><table id="tblBench"></table></div>
+    <div class="note" id="benchNote"></div>
+  </div>
+  <div class="card">
+    <h2><span class="dot"></span>Terminal wealth vs time in cash</h2>
+    <div id="chartBench" class="chart"></div>
+    <p class="hint">A rule that earns less by waiting is not "safer" — it is a different trade-off. Read both axes together, never the return column alone.</p>
+  </div>
+  <div class="card"><h2><span class="dot"></span>Assumptions</h2><div id="benchAssump"></div></div>
+</div>
+
+<!-- ================= ANALOGUES ================= -->
+<div class="section" id="s-analog">
+  <div class="card">
+    <h2><span class="dot"></span>Closest distinct historical episodes</h2>
+    <p class="hint" id="anaSub"></p>
+    <div class="scroll"><table id="tblAna"></table></div>
+    <div class="note" id="anaNote"></div>
+  </div>
+  <div class="grid cols-2">
+    <div class="card"><h2><span class="dot"></span>Outcome distribution</h2><div id="chartAna" class="chart sm"></div></div>
+    <div class="card"><h2><span class="dot"></span>What made them similar</h2><div id="anaDrivers"></div></div>
+  </div>
+</div>
+
+<!-- ================= SIGNALS ================= -->
+<div class="section" id="s-signals">
+  <div class="card">
+    <h2><span class="dot"></span>Do any inputs actually separate win rates?</h2>
+    <p class="hint" id="sigSub"></p>
+    <div class="scroll"><table id="tblSig"></table></div>
+    <div class="note" id="sigNote"></div>
+  </div>
+  <div class="card">
+    <h2><span class="dot"></span>Win-rate gap</h2>
+    <div id="chartSig" class="chart"></div>
+    <p class="hint">A bar near zero means the signal has not demonstrated anything. None clear the 5% threshold on non-overlapping data.</p>
+  </div>
+</div>
+
+<!-- ================= METHODOLOGY ================= -->
+<div class="section" id="s-method">
+  <div class="card">
+    <h2><span class="dot"></span>Methodology audit</h2>
+    <div class="flex" style="margin:8px 0"><span class="badge" id="auditBadge">—</span><span class="hint" id="auditVerdict"></span></div>
+    <div class="scroll"><table id="tblAudit"></table></div>
+    <div class="note" id="auditNote"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>Disclosures</h2>
+    <div id="disclosures"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>Known limitations</h2>
+    <ul id="limits"></ul>
+  </div>
+</div>
+
+<!-- ================= DATA ================= -->
+<div class="section" id="s-data">
+  <div class="card">
+    <h2><span class="dot"></span>Data quality</h2>
+    <p class="hint" id="dataSub"></p>
+    <div class="scroll"><table id="tblData"></table></div>
+  </div>
+  <div class="card">
+    <h2><span class="dot"></span>Sector ranking</h2>
+    <div class="scroll"><table id="tblSectors"></table></div>
+    <p class="hint">Relative-strength ranking within the 11 SPDR sectors. Descriptive, not a forecast.</p>
+  </div>
+</div>
+
+</div>
+
+<script>
+const D = __DASH_DATA__;
+const charts = {};
+let RANGE = 0;
+
+const V = n => (n===null||n===undefined||Number.isNaN(n)) ? null : n;
+const num = (n,d=1) => (V(n)===null) ? '—' : Number(n).toFixed(d);
+const pct = (n,d=1) => (V(n)===null) ? '—' : Number(n).toFixed(d)+'%';
+const sgn = (n,d=1) => (V(n)===null) ? '—' : (n>0?'+':'')+Number(n).toFixed(d);
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function el(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function badge(st){
+  const k = st==='PASS'?'b-pass':st==='FAIL'?'b-fail':'b-warn';
+  return '<span class="badge '+k+'">'+esc(st)+'</span>';
+}
+function toneFor(v){ return v>=60?'var(--green)':v>=40?'var(--blue)':v>=20?'var(--amber)':'var(--red)'; }
+
+function table(id, cols, rows){
+  const t = el(id); if(!t) return;
+  t.innerHTML = '<thead><tr>'+cols.map(c=>'<th'+(c.num?' class="num"':'')+'>'+esc(c.t)+'</th>').join('')+'</tr></thead><tbody>'+
+    rows.map(r=>'<tr>'+cols.map(c=>{
+      const v = r[c.k];
+      const cls = c.num?' class="num"':'';
+      return '<td'+cls+'>'+(c.html?c.html(v,r):esc(v===null||v===undefined?'—':v))+'</td>';
+    }).join('')+'</tr>').join('')+'</tbody>';
+}
+function getChart(id){
+  if(typeof echarts==='undefined') return null;
+  if(!charts[id]) charts[id]=echarts.init(el(id));
+  return charts[id];
+}
+window.addEventListener('resize',()=>{ setTimeout(()=>Object.values(charts).forEach(c=>c.resize()),80); });
+function axisCommon(){
+  return {
+    axisLine:{lineStyle:{color:css('--line2')}},
+    axisLabel:{color:css('--muted'),fontSize:10},
+    splitLine:{lineStyle:{color:css('--line')}}
+  };
+}
+function tooltipCommon(){ return {trigger:'axis',backgroundColor:css('--surface'),borderColor:css('--line'),textStyle:{color:css('--ink'),fontSize:11}}; }
+
+function toggleTheme(){
+  const h=document.documentElement;
+  const next = h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',next);
+  try{ localStorage.setItem('etf-theme',next); }catch(e){}
+  Object.keys(charts).forEach(k=>{ charts[k].dispose(); delete charts[k]; });
+  renderCharts();
+}
+(function initTheme(){
+  try{ const t=localStorage.getItem('etf-theme'); if(t) document.documentElement.setAttribute('data-theme',t); }catch(e){}
+})();
+
+function nav(s){
+  document.querySelectorAll('.section').forEach(d=>d.classList.toggle('on', d.id==='s-'+s));
+  document.querySelectorAll('.navtab').forEach(b=>b.classList.toggle('on', b.dataset.s===s));
+  setTimeout(()=>Object.values(charts).forEach(c=>c.resize()),50);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderHeader(){
+  const m=D.meta;
+  el('hdrMeta').innerHTML = [
+    'As of <b>'+esc(m.as_of)+'</b>',
+    'Model '+esc(m.model_version),
+    m.n+' sessions since '+esc(m.start),
+    'Basis: '+esc(m.price_basis),
+    'Horizon '+m.horizon_sessions,
+    'Embargo '+m.embargo_sessions
+  ].map(t=>'<span class="pill">'+t+'</span>').join('');
+}
+
+function topFamily(f){ let k=null,v=-1; for(const x in f){ if(f[x]!=null&&f[x]>v){v=f[x];k=x;} } return (k||'').replace(/_/g,' '); }
+function bottomFamily(f){ let k=null,v=999; for(const x in f){ if(f[x]!=null&&f[x]<v){v=f[x];k=x;} } return (k||'').replace(/_/g,' '); }
+
+function renderOverview(){
+  const c=D.current, b=c.prob_bin||{};
+  const prob=c.prob_pct;
+  el('kProb').textContent = pct(prob,1);
+  el('kProb').className = 'val big '+(prob>=60?'tone-green':prob>=45?'tone-amber':'tone-red');
+  el('kProbSub').innerHTML = b.observed!=null
+    ? 'Realised in this band: <b>'+pct(b.observed,1)+'</b> &nbsp;·&nbsp; 95% CI '+pct(b.ci_low,1)+'–'+pct(b.ci_high,1)+' &nbsp;·&nbsp; '+b.n_eff+' independent episodes'
+    : 'No comparable historical band yet';
+  el('kExp').textContent = sgn(c.exp_ret_pct,2)+'%';
+  el('kMed').textContent = sgn(c.median_ret_pct,2)+'%';
+  el('kLoss').textContent = pct(c.p_loss10_pct,1);
+  el('kES').textContent = sgn(c.es6_pct,1)+'%';
+
+  const ece = c.ece_pp;
+  el('kProbNote').className = 'note'+(ece!=null&&ece>5?' warn':'');
+  el('kProbNote').innerHTML = ece!=null
+    ? '<b>Calibration error '+num(ece,1)+' pp.</b> '+(ece>5
+        ? 'That exceeds the 5 pp threshold, so treat this probability as a rough indication rather than a precise number.'
+        : 'Within the 5 pp tolerance.')
+      +(c.calibration_method? ' Method: '+esc(c.calibration_method)+'.':'')
+    : 'Calibration error could not be estimated.';
+
+  const o=c.opp;
+  el('kOpp').textContent = num(o,0);
+  el('kOpp').style.color = toneFor(o);
+  el('kOppSub').textContent = c.opp_band? c.opp_band.label : '—';
+  el('kT10').textContent = num(c.timing['10y'],0);
+  el('kT5').textContent = num(c.timing['5y'],0);
+  el('kDis').textContent = num(c.families.dislocation,0);
+  el('kDown').textContent = num(c.families.downside_risk,0);
+
+  const fam=c.families, vals=Object.values(fam).filter(v=>v!=null);
+  const mean = vals.length? vals.reduce((a,v)=>a+v,0)/vals.length : 0;
+  const spread = vals.length>1 ? Math.sqrt(vals.reduce((a,v)=>a+(v-mean)**2,0)/vals.length) : null;
+  el('kOppNote').className='note'+(spread!=null&&spread>28?' warn':'');
+  el('kOppNote').innerHTML = 'Strongest family: <b>'+esc(topFamily(fam))+'</b>. Weakest: <b>'+esc(bottomFamily(fam))+'</b>.'
+    + (spread!=null&&spread>28?' Components disagree strongly, so the composite hides a conflict — read the families individually.':'');
+
+  const cv=c.conviction;
+  el('kGrade').textContent = 'Grade '+cv.grade;
+  el('kGrade').className='val big '+(cv.grade==='A'?'tone-green':cv.grade==='B'?'tone-blue':cv.grade==='C'?'tone-amber':'tone-red');
+  el('kGradeSub').textContent = cv.meaning+' · score '+num(cv.score,0)+'/100';
+  el('kRegime').textContent = c.regime;
+  el('kAge').textContent = c.stale_days;
+  const agree = spread!=null ? Math.max(0,100-spread*2.2) : null;
+  el('kAgreeBar').style.width = (agree==null?0:agree)+'%';
+  el('kAgreeBar').style.background = agree==null?'var(--muted)':agree>70?'var(--green)':agree>45?'var(--amber)':'var(--red)';
+  el('kAgreeTxt').textContent = agree==null?'—':num(agree,0)+'% agreement across families';
+
+  renderQuadrant(c.matrix);
+  el('matrixNote').className = 'note'+(cv.allow_action_language?'':' warn');
+  el('matrixNote').innerHTML = '<b>'+esc(c.matrix.headline)+'</b> '+esc(c.matrix.detail)
+    + (cv.allow_action_language? '' : ' Conviction is '+cv.grade+', so no actionable language is offered regardless of the score.');
+
+  renderPlain();
+}
+
+function renderQuadrant(m){
+  const cells=[
+    {k:'high_prob_low_opp', t:'High probability · low opportunity', d:'Positive trend, entry not unusual'},
+    {k:'high_prob_high_opp', t:'High probability · high opportunity', d:'Favourable outlook and entry'},
+    {k:'low_prob_low_opp', t:'Low probability · low opportunity', d:'Weak outlook, little value'},
+    {k:'low_prob_high_opp', t:'Low probability · high opportunity', d:'Contrarian, elevated uncertainty'}
+  ];
+  el('quad').innerHTML = cells.map(c=>
+    '<div class="cell'+(m.quadrant===c.k?' on':'')+'"><b>'+esc(c.t)+'</b>'+esc(c.d)+'</div>').join('');
+}
+
+function renderPlain(){
+  const c=D.current, cv=c.conviction;
+  const txt=[];
+  txt.push('The 6-month probability is <b>'+pct(c.prob_pct,1)+'</b>. Historically, states like this were followed by a positive 6-month total return about that often — with a 95% interval of '
+    +(c.prob_bin?pct(c.prob_bin.ci_low,1)+' to '+pct(c.prob_bin.ci_high,1):'unknown')+'.');
+  txt.push('Entry attractiveness sits at <b>'+num(c.opp,0)+'/100</b> ('+esc(c.opp_band.label)+'), the '+num(c.timing['10y'],0)+'th percentile of the last ten years. That is a relative statement, not a probability.');
+  txt.push('Evidence is <b>grade '+cv.grade+'</b> ('+esc(cv.meaning)+'). '+(cv.allow_action_language
+    ? 'That grade permits a considered decision, not a confident one.'
+    : 'At this grade the dashboard deliberately withholds confident recommendations.'));
+  txt.push('<b>These three numbers measure different things.</b> A high probability does not mean the price is unusually attractive, and an attractive price does not mean the odds are good.');
+  el('plainReading').innerHTML = '<ul>'+txt.map(t=>'<li style="font-size:12px;margin:7px 0">'+t+'</li>').join('')+'</ul>'
+    +'<div class="note"><b>Why the probability barely moves:</b> no input in this dataset separates 6-month win rates at the 5% level once overlapping observations are removed (see Signal tests). The level therefore comes from the long-run base rate and only tilts modestly with trend.</div>';
+}
+
+function seriesSlice(arr){
+  if(!RANGE) return arr.slice();
+  return arr.slice(Math.max(0,arr.length-RANGE));
+}
+function setRange(r){
+  RANGE=r;
+  document.querySelectorAll('#rangeSeg button').forEach(b=>b.classList.toggle('on', Number(b.dataset.r)===r));
+  renderMainChart();
+}
+function renderMainChart(){
+  const c=getChart('chartMain'); if(!c) return;
+  const dates=seriesSlice(D.dates);
+  const prob=seriesSlice(D.prob), opp=seriesSlice(D.opp), tim=seriesSlice(D.timing_10y), dd=seriesSlice(D.dd);
+  let pMin=null,pMax=null;
+  if(RANGE && RANGE<=756){
+    const vs=prob.filter(v=>v!=null);
+    if(vs.length){ pMin=Math.floor(Math.min.apply(null,vs)-3); pMax=Math.ceil(Math.max.apply(null,vs)+3); }
+  }
+  const ax=axisCommon();
+  c.setOption({
+    grid:{left:46,right:48,top:34,bottom:30},
+    tooltip:tooltipCommon(),
+    legend:{top:0,textStyle:{color:css('--muted'),fontSize:10},itemWidth:14,itemHeight:8},
+    xAxis:{type:'category',data:dates,boundaryGap:false,axisLine:ax.axisLine,
+      axisLabel:{color:css('--muted'),fontSize:9},splitLine:{show:false}},
+    yAxis:[
+      {type:'value',min:pMin,max:pMax,name:'score 0-100',nameTextStyle:{color:css('--muted'),fontSize:9},
+        axisLine:ax.axisLine,axisLabel:ax.axisLabel,splitLine:ax.splitLine},
+      {type:'value',name:'drawdown %',nameTextStyle:{color:css('--muted'),fontSize:9},
+        axisLine:ax.axisLine,axisLabel:ax.axisLabel,splitLine:{show:false}}
+    ],
+    series:[
+      {name:'P(6M up) %',type:'line',data:prob,smooth:true,symbol:'none',lineStyle:{width:2,color:css('--blue')},itemStyle:{color:css('--blue')}},
+      {name:'Opportunity',type:'line',data:opp,smooth:true,symbol:'none',lineStyle:{width:1.6,color:css('--green')},itemStyle:{color:css('--green')}},
+      {name:'Timing pct',type:'line',data:tim,smooth:true,symbol:'none',lineStyle:{width:1.6,color:css('--purple'),type:'dashed'},itemStyle:{color:css('--purple')}},
+      {name:'SPY drawdown',type:'line',yAxisIndex:1,data:dd,smooth:true,symbol:'none',lineStyle:{width:1,color:css('--muted')},areaStyle:{color:'rgba(125,135,150,.12)'},itemStyle:{color:css('--muted')}}
+    ]
+  }, true);
+  el('chartNote').innerHTML = (pMin!=null)
+    ? 'Probability axis is zoomed to '+pMin+'–'+pMax+'% so recent movement is visible. <b>The underlying values are unchanged</b> — the axis labels show them exactly.'
+    : 'Probability, Opportunity and Timing are each 0–100 but measure different things. The grey line is SPY drawdown from its 52-week high (right axis).';
+}
+
+function renderHist(){
+  const c=getChart('chartHist'); if(!c) return;
+  const cur={prob:D.current.prob_pct, opp:D.current.opp, timing:D.current.timing['10y']};
+  const series=[['prob',D.prob,'P(6M up)'],['opp',D.opp,'Opportunity'],['timing',D.timing_10y,'Timing pct']];
+  const wins=[['5y',1260],['10y',2520],['All',0]];
+  const cats=[], vals=[], detail=[];
+  series.forEach(function(s){
+    const k=s[0], arr=s[1], label=s[2], v=cur[k];
+    wins.forEach(function(w){
+      const wl=w[0], win=w[1];
+      const sub = win? arr.slice(Math.max(0,arr.length-win)) : arr;
+      const clean=sub.filter(x=>x!=null);
+      if(v==null||clean.length<50){ cats.push(label+' · '+wl); vals.push(null); return; }
+      const r=100*clean.filter(x=>x<=v).length/clean.length;
+      cats.push(label+' · '+wl); vals.push(Math.round(r*10)/10);
+      detail.push(label+' — '+Math.round(r)+'th percentile of '+wl);
+    });
+  });
+  const ax=axisCommon();
+  c.setOption({
+    grid:{left:52,right:14,top:12,bottom:52},
+    tooltip:{trigger:'axis',backgroundColor:css('--surface'),borderColor:css('--line'),textStyle:{color:css('--ink'),fontSize:11},
+      formatter:function(p){ return p[0].name+'<br/>'+num(p[0].value,1)+'th percentile'; }},
+    xAxis:{type:'category',data:cats,axisLabel:{color:css('--muted'),fontSize:8.5,rotate:32,interval:0},axisLine:ax.axisLine},
+    yAxis:{type:'value',min:0,max:100,axisLabel:ax.axisLabel,splitLine:ax.splitLine,axisLine:ax.axisLine},
+    series:[{type:'bar',barMaxWidth:26,
+      data:vals.map(v=>({value:v,itemStyle:{color:v>=80?'var(--green)':v>=60?'var(--blue)':v>=40?'var(--amber)':'var(--red)',borderRadius:[3,3,0,0]}})),
+      label:{show:true,position:'top',fontSize:9,color:css('--muted'),formatter:function(p){ return p.value==null?'':p.value; }}}]
+  }, true);
+  el('histNote').innerHTML = detail.join(' · ');
+}
+
+function renderCalib(){
+  const c=D.calibration||{};
+  const passed = c.brier!=null && c.brier < c.brier_baseline && c.ece_pp!=null && c.ece_pp<=5;
+  el('calibBadge').className='badge '+(passed?'b-pass':'b-warn');
+  el('calibBadge').textContent = passed?'WELL CALIBRATED':'CALIBRATION LIMITED';
+  el('calibVerdict').textContent = (c.n? c.n+' out-of-sample predictions, '+c.n_eff+' independent 6-month episodes.':'No out-of-sample predictions.');
+
+  el('calibKpis').innerHTML=[
+    ['Brier score',num(c.brier,4),'lower is better'],
+    ['Constant forecast',num(c.brier_baseline,4),'reference'],
+    ['Log loss',num(c.log_loss,4),'vs '+num(c.log_loss_baseline,4)],
+    ['ECE',num(c.ece_pp,2)+' pp','5 pp target'],
+    ['Max error',num(c.mce_pp,2)+' pp','worst bin'],
+    ['Slope',num(c.slope,2),'1.0 = ideal'],
+    ['Base rate',pct(100*(c.base_rate||0),1),'unconditional']
+  ].map(function(a){ return '<div class="kpi"><div class="lab">'+a[0]+'</div><div class="val" style="font-size:17px">'+a[1]+'</div><div class="sub2">'+a[2]+'</div></div>'; }).join('');
+
+  el('calibNote').className='note'+(passed?'':' warn');
+  el('calibNote').innerHTML = passed
+    ? 'The probability beats a constant forecast and stays within tolerance. Even so it clusters near the base rate and should not be read as a precise instrument.'
+    : '<b>Be aware:</b> the Brier score is '+(c.brier!=null&&c.brier>c.brier_baseline?'worse than':'comparable to')+' a constant forecast of the base rate, and calibration error is '+num(c.ece_pp,1)+' pp. The probability is directionally reasonable but not precise. This is reported rather than adjusted away.';
+
+  const rc=(c.reliability||[]);
+  const ch=getChart('chartRel');
+  if(ch){
+    const ax=axisCommon();
+    ch.setOption({
+      grid:{left:44,right:16,top:16,bottom:36},
+      tooltip:{trigger:'item',backgroundColor:css('--surface'),borderColor:css('--line'),textStyle:{color:css('--ink'),fontSize:11},
+        formatter:function(p){ return p.seriesName+'<br/>predicted '+num(p.value[0],1)+'%<br/>observed '+num(p.value[1],1)+'%'; }},
+      xAxis:{type:'value',min:0,max:100,name:'predicted %',nameTextStyle:{fontSize:9,color:css('--muted')},axisLabel:ax.axisLabel,splitLine:ax.splitLine,axisLine:ax.axisLine},
+      yAxis:{type:'value',min:0,max:100,name:'observed %',nameTextStyle:{fontSize:9,color:css('--muted')},axisLabel:ax.axisLabel,splitLine:ax.splitLine,axisLine:ax.axisLine},
+      series:[
+        {name:'Perfect',type:'line',data:[[0,0],[100,100]],symbol:'none',lineStyle:{type:'dashed',width:1,color:css('--muted')},silent:true},
+        {name:'Observed',type:'scatter',data:rc.map(r=>[r.predicted,r.observed]),symbolSize:12,itemStyle:{color:css('--accent')},
+          label:{show:true,position:'right',fontSize:9,color:css('--muted'),formatter:function(p){ return rc[p.dataIndex].bin+'%'; }}}
+      ]
+    }, true);
+  }
+
+  const dist=getChart('chartDist');
+  if(dist){
+    const bins=[],counts=[];
+    for(let lo=30;lo<100;lo+=5){ bins.push(lo+'-'+(lo+5)); counts.push(0); }
+    D.prob.forEach(function(v){ if(v==null)return; const i=Math.floor((v-30)/5); if(i>=0&&i<counts.length) counts[i]++; });
+    const ax=axisCommon();
+    dist.setOption({
+      grid:{left:44,right:14,top:16,bottom:36},
+      tooltip:{trigger:'axis',backgroundColor:css('--surface'),borderColor:css('--line'),textStyle:{color:css('--ink'),fontSize:11}},
+      xAxis:{type:'category',data:bins,axisLabel:{color:css('--muted'),fontSize:8.5,rotate:40,interval:0},axisLine:ax.axisLine},
+      yAxis:{type:'value',axisLabel:ax.axisLabel,splitLine:ax.splitLine,axisLine:ax.axisLine},
+      series:[{type:'bar',data:counts,barMaxWidth:18,itemStyle:{color:css('--accent'),borderRadius:[3,3,0,0]}}]
+    }, true);
+  }
+
+  const methods=c.methods_comparison||[];
+  if(el('tblMethods') && methods.length){
+    table('tblMethods',[
+      {t:'Method',k:'method'},{t:'Brier',k:'brier',num:1},{t:'Delta vs identity',k:'delta_brier_vs_identity',num:1},
+      {t:'Log loss',k:'log_loss',num:1},{t:'ECE pp',k:'ece_pp',num:1},{t:'Mean pred %',k:'mean_pred_pct',num:1}
+    ],methods.map(function(m){ return Object.assign({},m,{
+      brier:num(m.brier,4), log_loss:num(m.log_loss,4),
+      delta_brier_vs_identity:(m.delta_brier_vs_identity>0?'+':'')+num(m.delta_brier_vs_identity,4),
+      ece_pp:num(m.ece_pp,1), mean_pred_pct:num(m.mean_pred_pct,1)}); }));
+    const best=methods.slice().sort((a,b)=>a.brier-b.brier)[0];
+    el('methodNote').innerHTML = best
+      ? '<b>'+esc(best.method)+'</b> scores best out of sample. The selection rule additionally requires at least 10 independent validation outcomes before any calibrator may replace the identity map; with a 126-session label that threshold is normally not met, which is why the shipped model uses the anchored probability directly.'
+      : 'No calibration comparison available.';
+  }
+
+  const grp=[{t:'Group',k:'group'},{t:'n',k:'n',num:1},{t:'Pred %',k:'predicted',num:1},{t:'Obs %',k:'observed',num:1},{t:'Slope',k:'slope',num:1}];
+  function fmtGroup(rows){ return rows.map(function(r){ return Object.assign({},r,{predicted:num(r.predicted,1),observed:num(r.observed,1),slope:num(r.slope,2)}); }); }
+  if((c.by_decade||[]).length) table('tblDecade',grp,fmtGroup(c.by_decade));
+  if((c.by_regime||[]).length) table('tblRegime',grp,fmtGroup(c.by_regime));
+  if((c.by_vol_tercile||[]).length) table('tblVol',grp,fmtGroup(c.by_vol_tercile));
+
+  table('tblBlocks',[
+    {t:'Origin',k:'origin'},{t:'Scored to',k:'test_end'},{t:'Train rows',k:'train_rows',num:1},
+    {t:'Train ends',k:'train_last_date'},{t:'Purged',k:'purged_rows',num:1},{t:'Val rows',k:'val_rows',num:1},
+    {t:'Anchor',k:'anchor_at_test',html:function(v){ return pct(100*v,1); }},{t:'Calibrator',k:'calibrator'}
+  ], D.blocks||[]);
+}
+
+function renderOpp(){
+  const c=D.current;
+  const w=c.weights||{};
+  const rows=Object.keys(w).map(function(k){
+    return {
+      family:k.replace(/_/g,' '),
+      weight:Math.round(w[k]*100)+'%',
+      today:num(c.families[k],0),
+      bar:'<span class="bar" style="width:80px"><i style="width:'+(c.families[k]||0)+'%;background:'+toneFor(c.families[k]||0)+'"></i></span>'
+    };
+  });
+  table('tblFam',[{t:'Family',k:'family'},{t:'Weight',k:'weight'},{t:'Today',k:'today',num:1},{t:'',k:'bar',html:function(v){return v;}}],rows);
+  el('oppNote').innerHTML = 'The composite is a weighted mean of family percentiles: 30% expected return, 25% dislocation, 20% downside safety, 15% valuation/trend, 10% internals. '
+    + 'Weights are a stated prior, not an optimum. Every input is ranked only against data available at the time, so a value printed today would have been identical had it been printed then.';
+
+  const ch=getChart('chartFam');
+  if(ch){
+    const names=Object.keys(c.families).map(k=>k.replace(/_/g,' '));
+    const vals=Object.keys(c.families).map(k=>c.families[k]);
+    ch.setOption({
+      grid:{left:110,right:26,top:12,bottom:24},
+      tooltip:{trigger:'axis',backgroundColor:css('--surface'),borderColor:css('--line'),textStyle:{color:css('--ink'),fontSize:11}},
+      xAxis:{type:'value',min:0,max:100,axisLabel:axisCommon().axisLabel,splitLine:axisCommon().splitLine,axisLine:axisCommon().axisLine},
+      yAxis:{type:'category',data:names,axisLabel:{color:css('--muted'),fontSize:9.5},axisLine:axisCommon().axisLine},
+      series:[{type:'bar',barMaxWidth:16,
+        data:vals.map(v=>({value:v,itemStyle:{color:toneFor(v),borderRadius:[0,3,3,0]}})),
+        label:{show:true,position:'right',fontSize:9.5,color:css('--muted'),formatter:function(p){ return num(p.value,0); }}}]
+    }, true);
+  }
+
+  table('tblSens',[{t:'Weighting',k:'scheme'},{t:'Spearman',k:'spearman_vs_base',num:1},{t:'Mean abs diff',k:'mean_abs_diff',num:1},{t:'Band change',k:'label_change_pct',num:1}],
+    (D.sensitivity||[]).map(function(s){ return Object.assign({},s,{spearman_vs_base:num(s.spearman_vs_base,2),
+      mean_abs_diff:num(s.mean_abs_diff,1),label_change_pct:s.label_change_pct==null?'—':num(s.label_change_pct,1)+'%'}); }));
+
+  const oh=getChart('chartOppHist');
+  if(oh){
+    const ax=axisCommon();
+    oh.setOption({
+      grid:{left:46,right:46,top:26,bottom:28},
+      tooltip:tooltipCommon(),
+      legend:{top:0,textStyle:{color:css('--muted'),fontSize:10},itemWidth:14,itemHeight:8},
+      xAxis:{type:'category',data:D.dates,boundaryGap:false,axisLabel:{color:css('--muted'),fontSize:9},axisLine:ax.axisLine,splitLine:{show:false}},
+      yAxis:[{type:'value',min:0,max:100,axisLabel:ax.axisLabel,splitLine:ax.splitLine,axisLine:ax.axisLine},
+             {type:'value',axisLabel:ax.axisLabel,splitLine:{show:false},axisLine:ax.axisLine}],
+      series:[
+        {name:'Opportunity',type:'line',data:D.opp,symbol:'none',smooth:true,lineStyle:{width:1.6,color:css('--green')},itemStyle:{color:css('--green')}},
+        {name:'Timing pct',type:'line',data:D.timing_10y,symbol:'none',smooth:true,lineStyle:{width:1.2,color:css('--purple'),type:'dashed'},itemStyle:{color:css('--purple')}},
+        {name:'SPY drawdown',type:'line',yAxisIndex:1,data:D.dd,symbol:'none',smooth:true,lineStyle:{width:1,color:css('--muted')},areaStyle:{color:'rgba(125,135,150,.12)'},itemStyle:{color:css('--muted')}}
+      ]
+    }, true);
+  }
+}
+
+function renderBench(){
+  const b=D.benchmarks||{};
+  if(!b.available){ el('benchWindow').textContent=b.reason||'Benchmarks unavailable.'; return; }
+  el('benchWindow').innerHTML = 'Window <b>'+esc(b.window.start)+'</b> to <b>'+esc(b.window.end)+'</b> ('+b.window.months+' non-overlapping monthly decisions). $1 notional, '+b.assumptions.cost_bps_per_leg+' bps per leg.';
+  table('tblBench',[
+    {t:'Strategy',k:'strategy'},{t:'Terminal $',k:'terminal_wealth',num:1},
+    {t:'CAGR',k:'cagr_pct',num:1},{t:'Vol',k:'vol_pct',num:1},{t:'Sharpe',k:'sharpe',num:1},
+    {t:'Max DD',k:'max_drawdown_pct',num:1},{t:'Calmar',k:'calmar',num:1},
+    {t:'In cash',k:'time_in_cash_pct',num:1},{t:'Worst 5%',k:'worst_5pct_12m',num:1},{t:'vs lump',k:'regret_vs_lump_sum',num:1}
+  ],(b.strategies||[]).map(function(r){
+    return Object.assign({},r,{
+      terminal_wealth:num(r.terminal_wealth,2),
+      cagr_pct:r.cagr_pct==null?'—':num(r.cagr_pct,1)+'%',
+      vol_pct:r.vol_pct==null?'—':num(r.vol_pct,1)+'%',
+      sharpe:num(r.sharpe,2),
+      max_drawdown_pct:r.max_drawdown_pct==null?'—':num(r.max_drawdown_pct,1)+'%',
+      calmar:num(r.calmar,2),
+      time_in_cash_pct:r.time_in_cash_pct==null?'—':num(r.time_in_cash_pct,1)+'%',
+      worst_5pct_12m:r.worst_5pct_12m==null?'—':num(r.worst_5pct_12m,1)+'%',
+      regret_vs_lump_sum:r.regret_vs_lump_sum==null?'—':(r.regret_vs_lump_sum>0?'+':'')+num(r.regret_vs_lump_sum,2)
+    });
+  }));
+  el('benchNote').innerHTML = '<b>'+esc(b.caveat)+'</b>';
+
+  const ch=getChart('chartBench');
+  if(ch){
+    const rows=(b.strategies||[]).filter(r=>r.time_in_cash_pct!=null);
+    ch.setOption({
+      grid:{left:52,right:20,top:20,bottom:60},
+      tooltip:{trigger:'item',backgroundColor:css('--surface'),borderColor:css('--line'),textStyle:{color:css('--ink'),fontSize:11},
+        formatter:function(p){ const r=rows[p.dataIndex]; return esc(r.strategy)+'<br/>terminal $'+num(r.terminal_wealth,2)+'<br/>cash '+num(r.time_in_cash_pct,1)+'%'; }},
+      xAxis:{type:'value',name:'time in cash %',nameTextStyle:{fontSize:9,color:css('--muted')},axisLabel:axisCommon().axisLabel,splitLine:axisCommon().splitLine,axisLine:axisCommon().axisLine},
+      yAxis:{type:'value',name:'terminal $',nameTextStyle:{fontSize:9,color:css('--muted')},axisLabel:axisCommon().axisLabel,splitLine:axisCommon().splitLine,axisLine:axisCommon().axisLine},
+      series:[{type:'scatter',symbolSize:12,
+        data:rows.map(r=>({value:[r.time_in_cash_pct,r.terminal_wealth],
+          itemStyle:{color:r.strategy==='Immediate lump sum'?css('--red'):css('--accent')}})),
+        label:{show:true,position:'right',fontSize:9,color:css('--muted'),formatter:function(p){ return rows[p.dataIndex].strategy.slice(0,20); }}}]
+    }, true);
+  }
+
+  const a=b.assumptions||{};
+  el('benchAssump').innerHTML='<ul>'+Object.keys(a).map(k=>'<li><b>'+esc(k.replace(/_/g,' '))+'</b>: '+esc(a[k])+'</li>').join('')+'</ul>';
+}
+
+function renderAnalog(){
+  const a=D.analogues||{};
+  if(!a.available){ el('anaSub').textContent=a.reason||'Not available.'; return; }
+  el('anaSub').innerHTML = 'Target date <b>'+esc(a.target_date)+'</b>. '+a.episodes_found+' distinct episodes, each separated by at least '+a.episode_gap_sessions+
+    ' sessions so overlapping 6-month outcomes are not double counted. Features used: '+a.features_used.length+'.';
+  table('tblAna',[
+    {t:'Date',k:'date'},{t:'Episode',k:'episode',num:1},{t:'Similarity',k:'similarity_pct',num:1},
+    {t:'1M',k:'fwd_1m',num:1},{t:'3M',k:'fwd_3m',num:1},{t:'6M',k:'fwd_6m',num:1},{t:'12M',k:'fwd_12m',num:1},
+    {t:'Main drivers',k:'drivers',html:function(v){ return (v||[]).map(d=>esc(d.feature)+' '+d.share_pct+'%').join(', '); }}
+  ],(a.rows||[]).map(function(r){
+    return Object.assign({},r,{
+      similarity_pct:num(r.similarity_pct,0),
+      fwd_1m:r.fwd_1m==null?'—':sgn(r.fwd_1m)+'%',
+      fwd_3m:r.fwd_3m==null?'—':sgn(r.fwd_3m)+'%',
+      fwd_6m:r.fwd_6m==null?'—':sgn(r.fwd_6m)+'%',
+      fwd_12m:r.fwd_12m==null?'—':sgn(r.fwd_12m)+'%'
+    });
+  }));
+  el('anaNote').className='note'+(a.disagreement_warning?' warn':'');
+  el('anaNote').innerHTML = esc(a.disclaimer)+(a.disagreement_warning?' <b>The closest analogues disagree strongly, so they do not tell a consistent story.</b>':'');
+
+  const ch=getChart('chartAna');
+  if(ch){
+    const keys=['fwd_1m','fwd_3m','fwd_6m','fwd_12m'];
+    const labels=['1M','3M','6M','12M'];
+    ch.setOption({
+      grid:{left:44,right:16,top:18,bottom:26},
+      tooltip:{trigger:'axis',backgroundColor:css('--surface'),borderColor:css('--line'),textStyle:{color:css('--ink'),fontSize:11}},
+      xAxis:{type:'category',data:labels,axisLabel:axisCommon().axisLabel,axisLine:axisCommon().axisLine},
+      yAxis:{type:'value',axisLabel:{color:css('--muted'),fontSize:10,formatter:'{value}%'},splitLine:axisCommon().splitLine,axisLine:axisCommon().axisLine},
+      series:[
+        {name:'median',type:'bar',barMaxWidth:22,data:keys.map(k=>(a.stats[k]||{}).median),itemStyle:{color:css('--accent'),borderRadius:[3,3,0,0]}},
+        {name:'worst',type:'bar',barMaxWidth:22,data:keys.map(k=>(a.stats[k]||{}).worst),itemStyle:{color:css('--red'),borderRadius:[3,3,0,0]}},
+        {name:'best',type:'scatter',symbolSize:8,data:keys.map((k,i)=>[i,(a.stats[k]||{}).best]),itemStyle:{color:css('--green')}}
+      ]
+    }, true);
+  }
+  el('anaDrivers').innerHTML = (a.rows||[]).slice(0,3).map(function(r){
+    return '<div style="margin-bottom:8px"><b style="font-size:11.5px">'+esc(r.date)+'</b><div class="hint">'+
+      (r.drivers||[]).map(d=>esc(d.feature)+' — '+d.share_pct+'% of distance').join('<br/>')+'</div></div>';
+  }).join('') + '<div class="hint">Similarity is a distance in standardised feature space. It is not a probability and not confidence.</div>';
+}
+
+function renderSignals(){
+  const s=D.signal_tests||{};
+  if(!s.tests||!s.tests.length){ el('sigSub').textContent=s.conclusion||'Not available.'; return; }
+  el('sigSub').innerHTML = s.window.n_non_overlapping+' non-overlapping monthly decisions, '+esc(s.window.start)+' to '+esc(s.window.end)+
+    '. Base win rate <b>'+pct(s.base_win_pct,1)+'</b>. Daily overlapping observations are deliberately not used.';
+  table('tblSig',[
+    {t:'Signal',k:'signal'},{t:'Hi win',k:'hi_win_pct',num:1},{t:'Lo win',k:'lo_win_pct',num:1},
+    {t:'Gap',k:'gap_pp',num:1},{t:'t',k:'t',num:1},{t:'p',k:'p_value',num:1},
+    {t:'Verdict',k:'significant',html:function(v){ return v?'<span class="badge b-pass">significant</span>':'<span class="badge b-warn">not significant</span>'; }}
+  ],s.tests.map(function(r){ return Object.assign({},r,{hi_win_pct:num(r.hi_win_pct,1),lo_win_pct:num(r.lo_win_pct,1),
+    gap_pp:sgn(r.gap_pp,1),t:num(r.t,2),p_value:num(r.p_value,3)}); }));
+
+  el('sigNote').className='note'+(s.n_significant_5pct===0?' warn':'');
+  el('sigNote').innerHTML = '<b>'+esc(s.conclusion)+'</b> '+esc(s.multiple_testing_note);
+
+  const ch=getChart('chartSig');
+  if(ch){
+    const rows=s.tests;
+    ch.setOption({
+      grid:{left:118,right:34,top:16,bottom:34},
+      tooltip:{trigger:'axis',backgroundColor:css('--surface'),borderColor:css('--line'),textStyle:{color:css('--ink'),fontSize:11}},
+      xAxis:{type:'value',name:'win-rate gap (pp)',nameTextStyle:{fontSize:9,color:css('--muted')},axisLabel:axisCommon().axisLabel,splitLine:axisCommon().splitLine,axisLine:axisCommon().axisLine},
+      yAxis:{type:'category',data:rows.map(r=>r.signal),axisLabel:{color:css('--muted'),fontSize:9},axisLine:axisCommon().axisLine},
+      series:[{type:'scatter',symbolSize:9,
+        data:rows.map(r=>({value:[r.gap_pp,r.signal],itemStyle:{color:r.significant?css('--green'):css('--muted')}})),
+        markLine:{silent:true,symbol:'none',lineStyle:{color:css('--line2'),type:'dashed'},data:[{xAxis:0}]}}]
+    }, true);
+  }
+}
+
+function renderMethod(){
+  const a=D.audit_method||{};
+  el('auditBadge').className='badge '+(a.gate==='PASS'?'b-pass':a.gate==='FAIL'?'b-fail':'b-warn');
+  el('auditBadge').textContent='METHODOLOGY '+esc(a.gate);
+  el('auditVerdict').textContent=(a.pass||0)+' pass · '+(a.warning||0)+' warning · '+(a.fail||0)+' fail';
+  table('tblAudit',[{t:'Item',k:'item'},{t:'Status',k:'status',html:function(v){return badge(v);}},{t:'Finding',k:'finding'}],a.items||[]);
+  el('auditNote').innerHTML=esc(a.scope_note||'');
+
+  const m=D.meta;
+  el('disclosures').innerHTML = [
+    ['Target definitions','<code>y = 1 if (SPY total return over the next 126 sessions) &gt; 0</code>. Prices are dividend-adjusted, so the label is total return, not price return. The 12-month label uses 252 sessions.'],
+    ['Features','trend_dev = price/200DMA − 1; mom12; dd = price/52w high − 1; vix_pct = VIX percentile over 756 sessions; curve = 10Y − 3M yield; realvol = 63-session realised volatility; breadth = RSP/SPY vs its 1-year mean; credit = HYG/LQD; cyclical = XLY/XLP; smallcap = IWM/SPY.'],
+    ['Standardisation','Expanding z-scores computed up to each date. Feature scaling inside the model uses train-fold mean and standard deviation, recomputed at every origin.'],
+    ['Walk-forward design','Origins every 252 sessions. Training ends at <code>T − 504</code>; validation is <code>[T−252, T−126)</code>; test is <code>[T, T+252)</code>. The test block is scored once and never re-fitted.'],
+    ['Purge and embargo','A training row at index <code>i</code> has a label spanning [i, i+126]. Rows with <code>i+126 ≥ val_start</code> are purged, and a further 126-session embargo is dropped. Purged row counts are listed per block on the Calibration tab.'],
+    ['Calibration procedure','The level of the probability comes from the most recent realised 6-month win rate over 7 years; the model contributes a 40% tilt in logit space relative to its own training-era average. Isotonic, Platt and beta calibrators are evaluated out of sample and may only replace the identity map when at least 10 independent validation outcomes exist.'],
+    ['Effective sample size','<code>n_eff ≈ sessions_span / 126</code>. Overlapping daily 6-month returns are never treated as independent; confidence intervals and significance tests use the non-overlapping monthly series.'],
+    ['Benchmark definitions','All rules map to monthly buy dates and deploy $1 in equal tranches with 5 bps per leg and 0% cash return. Metrics are computed on the resulting monthly equity curve.'],
+    ['Uncertainty','Wilson score interval on the effective sample size. When effective n is small the interval is reported wide rather than narrowed artificially.'],
+    ['Model version', esc(m.model_version)+' · schema '+m.schema_version+' · horizon '+m.horizon_sessions+' sessions · embargo '+m.embargo_sessions],
+    ['Data provenance','Yahoo Finance chart API, dividend-adjusted closes, with Stooq close-only fallback. Provider and price basis are recorded per symbol. Last update '+esc(m.generated_at)+'.'],
+    ['Required statement','The probability score, Timing Percentile and Opportunity Score measure different concepts. A high probability score does not necessarily mean that the current price is unusually attractive.']
+  ].map(function(a){ return '<details><summary>'+a[0]+'</summary><div class="body">'+a[1]+'</div></details>'; }).join('');
+
+  el('limits').innerHTML=[
+    'Six-month overlapping labels leave roughly 44 independent outcomes in 22 years. No method can manufacture more information than that.',
+    'The unconditional win rate is non-stationary (about 65% before 2004, about 78% after), so a model trained on the past cannot set the level — the base-rate anchor does that, and it lags by up to two years.',
+    'No input passes a 5% significance test on non-overlapping data. The probability therefore sits close to the base rate and moves little, which is the honest outcome rather than a bug.',
+    'Expected return is predicted by ridge regression with very low explanatory power; treat the expected and median return figures as weak estimates.',
+    'The Opportunity Score weights are a stated prior. Sensitivity analysis shows the ranking is fairly stable, but the bands are not validated as actionable.',
+    'Benchmarks assume 0% cash return, which understates any strategy that waits. Even so, waiting rules did not beat lump sum on terminal wealth.',
+    'Dividend adjustment matters: earlier versions used raw closes, which understated every forward return by roughly 1.8% a year. Series before this fix are not comparable.',
+    'The charting library loads from a CDN. Without internet the tables still render but charts do not.'
+  ].map(t=>'<li>'+t+'</li>').join('');
+}
+
+function renderData(){
+  const a=D.audit_data||{};
+  const sum=a.summary||{};
+  el('dataSub').innerHTML='Gate <b>'+esc(sum.gate||'—')+'</b> · '+sum.pass+' pass · '+sum.warning+' warning · '+sum.fail+' fail. Newest bar '+(D.meta.stale_days)+' day(s) old.';
+  const rows=Object.values(a.symbols||{});
+  table('tblData',[
+    {t:'Symbol',k:'symbol'},{t:'Source',k:'source'},{t:'Basis',k:'price_basis'},
+    {t:'Points',k:'data_points',num:1},{t:'Stale d',k:'stale_days',num:1},
+    {t:'Status',k:'data_quality',html:function(v){ return badge(v==='PASS'?'PASS':v==='FAIL'?'FAIL':'WARNING'); }},
+    {t:'Issues',k:'issues',html:function(v){ return (v&&v.length)?esc(v.join(', ')):'—'; }}
+  ],rows.map(function(r){ return Object.assign({},r,{stale_days:num(r.stale_days,0)}); }));
+
+  const sec=D.sectors||{};
+  table('tblSectors',[
+    {t:'#',k:'rank',num:1},{t:'Symbol',k:'symbol'},{t:'Sector',k:'name'},{t:'Score',k:'buying_score',num:1},
+    {t:'Rel. strength',k:'relative_strength',num:1},{t:'6M mom',k:'momentum_6m',num:1},{t:'Vol',k:'volatility',num:1}
+  ],(sec.sectors||[]).map(function(r){
+    return Object.assign({},r,{buying_score:num(r.buying_score,1),relative_strength:num(r.relative_strength,3),
+      momentum_6m:sgn(100*r.momentum_6m,1)+'%',volatility:num(100*r.volatility,1)+'%'});
+  }));
+}
+
+function renderCharts(){
+  renderMainChart(); renderHist(); renderCalib(); renderOpp(); renderBench(); renderAnalog(); renderSignals();
+}
+function renderAll(){
+  renderHeader(); renderOverview(); renderMethod(); renderData(); renderCharts();
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', renderAll);
+else renderAll();
+</script>
+</body>
+</html>

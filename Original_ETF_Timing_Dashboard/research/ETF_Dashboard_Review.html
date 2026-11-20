@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETF Timing Dashboard — Data Integrity Review &amp; Architecture Report</title>
+<style>
+:root{--bg:#f4f6f9;--surface:#fff;--surface2:#f8fafc;--ink:#1a2233;--ink2:#4a5568;--muted:#7b8798;--line:#e2e8f0;--accent:#1f5fd0;--green:#16a34a;--red:#dc2626;--amber:#f59e0b;--purple:#8b5cf6;--blue:#3b82f6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;line-height:1.65}
+.wrap{max-width:1160px;margin:0 auto;padding:24px 18px 80px}
+header{background:linear-gradient(135deg,#12325f,#1f5fd0);color:#fff;border-radius:14px;padding:26px 28px;box-shadow:0 10px 34px rgba(15,23,42,.14)}
+header h1{font-size:24px;letter-spacing:-.4px;line-height:1.3}
+header .sub{font-size:12.5px;opacity:.9;margin-top:8px;max-width:820px}
+.hdr-stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.hdr-stats span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:650}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:16px 0;box-shadow:0 1px 3px rgba(15,23,42,.06),0 6px 20px rgba(15,23,42,.04)}
+h2{font-size:17px;margin:0 0 12px;display:flex;align-items:center;gap:9px}
+h2 .n{display:inline-flex;width:24px;height:24px;border-radius:7px;background:var(--accent);color:#fff;font-size:12px;align-items:center;justify-content:center;flex-shrink:0}
+h3{font-size:13px;color:var(--ink2);margin:18px 0 8px;text-transform:uppercase;letter-spacing:.5px}
+p{margin:7px 0;color:var(--ink2);font-size:12.5px}
+b,strong{color:var(--ink)}
+code{background:var(--surface2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;color:#1f5fd0}
+ul,ol{margin:8px 0 8px 20px;color:var(--ink2);font-size:12.5px}
+li{margin:4px 0}
+table{width:100%;border-collapse:collapse;font-size:11.5px;margin:10px 0}
+th,td{padding:8px 9px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--surface2);font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700}
+tr:last-child td{border-bottom:none}
+.sev{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9.5px;font-weight:750;white-space:nowrap}
+.sev.critical{background:rgba(220,38,38,.13);color:var(--red)}
+.sev.high{background:rgba(245,158,11,.15);color:#b45309}
+.sev.medium{background:rgba(59,130,246,.13);color:var(--blue)}
+.sev.low{background:rgba(148,163,184,.18);color:var(--muted)}
+.ok{color:var(--green);font-weight:700}
+.tag{display:inline-block;background:var(--surface2);border:1px solid var(--line);border-radius:5px;padding:1px 7px;font-size:10px;font-weight:650;color:var(--ink2)}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}
+.kpi{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:13px;text-align:center}
+.kpi .v{font-size:22px;font-weight:780;letter-spacing:-.5px;color:var(--accent)}
+.kpi .l{font-size:10.5px;color:var(--muted);margin-top:2px}
+.note{border-left:3px solid var(--amber);background:#fffbeb;padding:11px 14px;border-radius:0 8px 8px 0;font-size:12px;color:#78350f;margin:12px 0}
+.good{border-left:3px solid var(--green);background:#f0fdf4;padding:11px 14px;border-radius:0 8px 8px 0;font-size:12px;color:#14532d;margin:12px 0}
+.diagram{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:10px;background:#fff}
+.two{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:820px){.two{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:repeat(4,1fr)}}
+.scroll{overflow-x:auto}
+footer{margin-top:26px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:16px;font-size:11px;color:var(--ink2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>ETF Timing Dashboard — Data Integrity Review</h1>
+  <div class="sub">A code-level audit of live market-data retrieval, fallback behaviour and score generation, followed by a targeted refactor for resilience, provenance and transparency. The validated Opportunity Score methodology was left unchanged.</div>
+  <div class="hdr-stats">
+    <span>Review date: 16 Nov 2026</span>
+    <span>Scope: dashboard_template.html · ETF_Timing_Dashboard.html</span>
+    <span>468 offline + 4 live checks passed</span>
+    <span>20 / 20 structural checks passed</span>
+  </div>
+</header>
+
+<div class="card">
+  <h2><span class="n">0</span>Executive summary</h2>
+  <p><b>The main finding: live data retrieval never worked.</b> Three of the six required symbols (<code>^VIX</code>, <code>^TNX</code>, <code>^IRX</code>) were stored pre-encoded as <code>%5EVIX</code> and then URL-encoded a second time, producing <code>%255EVIX</code>. Yahoo returns HTTP 404 for those paths (verified empirically). Because the loader used <code>Promise.all()</code>, a single 404 rejected the whole batch, so <i>every</i> Generate Score request silently fell back to the embedded dataset — while the UI offered no way to tell live from stored data.</p>
+  <p>Two further latent crash bugs were found by running the real application code under a DOM stub: the score-component bars and comparison chart read the wrong object keys (a <code>.toFixed()</code> on <code>undefined</code>), and the loading-state helper erased the success/error message in <code>finally</code>. All are fixed.</p>
+  <div class="kpis">
+    <div class="kpi"><div class="v">6 / 6</div><div class="l">symbols now fetch live &amp; verified</div></div>
+    <div class="kpi"><div class="v">100%</div><div class="l">live-data confidence achieved</div></div>
+    <div class="kpi"><div class="v">12</div><div class="l">bugs identified &amp; resolved</div></div>
+    <div class="kpi"><div class="v">78</div><div class="l">live score, 2026-11-16 (Strong Buy)</div></div>
+  </div>
+  <div class="good"><b>Live end-to-end proof.</b> A real Yahoo Finance request through the shipped <code>loadSeriesForDate()</code> on 2026-11-16 returned SPY 387, QQQ 387, ^VIX 389, TLT 387, ^TNX 387, ^IRX 387 bars — all six with <code>meta.symbol</code> matching the request — producing score <b>78 / Strong Buy</b> at 100% live confidence. No proxy was required from Node.</div>
+</div>
+
+<div class="card">
+  <h2><span class="n">1</span>Complete data flow: fetch request → score generation</h2>
+  <h3>BEFORE (as reviewed)</h3>
+  <ol>
+    <li>User picks a date and clicks <b>Generate Score</b> → <code>generateScore()</code> → <code>setLoading(true)</code>.</li>
+    <li><code>loadSeriesForDate(date)</code> computes <code>bufferStart = date − 560 calendar days</code>.</li>
+    <li><code>Promise.all()</code> fires six <code>fetchMarketHistory(DATA_CONFIG.symbols[k], bufferStart, date)</code> calls.</li>
+    <li>Each fetcher built <code>yahooBase + encodeURIComponent(symbol)</code>. Stored symbols were already encoded (<code>%5EVIX</code>), so caret series became <code>%255EVIX</code> → <b>HTTP 404</b>. SPY/QQQ/TLT succeeded but were discarded.</li>
+    <li>The first rejection short-circuited <code>Promise.all</code>. The <code>catch</code> block loaded <code>getEmbeddedSeries()</code> for all six symbols whenever the date fell inside 2000-01-03…2026-11-13 → <code>source: 'embedded'</code>. <b>No date ever produced a live score.</b></li>
+    <li><code>calculateIndicators()</code> truncated every series with <code>upTo(series, date)</code>, resolved the last SPY trading day (weekend/holiday handling), then computed SPY 200DMA, 50DMA, 252-session high, 12-month momentum (index <code>len-253</code>), drawdown, TLT 126-day MA, VIX, TNX, IRX, curve and month — all with no look-ahead.</li>
+    <li><code>validateIndicators()</code> → <code>indicatorsToScoreInput()</code> → <b><code>computeScore()</code></b> (unchanged 25/25/25/15/10 caps) → <code>detectSignals()</code> → <code>renderScore()</code>.</li>
+    <li><code>renderScore()</code> wrote the score circle, component bars, signal groups, audit table and history chart. <code>setLoading(false)</code> then cleared the status message.</li>
+  </ol>
+  <h3>AFTER (implemented)</h3>
+  <ol>
+    <li>Same entry point; <code>thresholds()</code> now also reads the user-configurable staleness limits from the Audit panel.</li>
+    <li><code>loadSeriesForDate()</code> uses <b><code>Promise.allSettled()</code></b> over six independent calls. Each symbol resolves on its own merits.</li>
+    <li><code>buildQuoteUrls()</code> encodes the <b>raw</b> symbol exactly once (<code>^VIX → %5EVIX</code>). A configured proxy is tried first; Yahoo is always retained as a second candidate. <code>fetchOnce()</code> adds an AbortController timeout.</li>
+    <li><code>parseHistoryJSON()</code> validates the JSON shape, rejects <code>chart.error</code> payloads, and <b>requires <code>meta.symbol</code> to match the requested symbol</b> for Yahoo responses. Transient failures retry with exponential backoff (350 / 700 / 1400 ms, capped 4 s).</li>
+    <li>Per symbol: fulfilled → <code>source:'live'</code> with provider, request URL, verification URL, retrieval timestamp and reported symbol; rejected → embedded series <b>only if</b> <code>embeddedCoversDate(date)</code>, otherwise <code>source:'missing'</code>. Overall source is <code>live | partial | embedded | error</code>.</li>
+    <li><code>assessDataQuality()</code> resolves each metric's actual observation date, computes lag vs requested date and feed age vs today, raises warnings (stale, mixed dates, unverified symbol, embedded substitution, missing Fed Funds) and computes the confidence score <code>round(100 × liveCount / 6)</code>.</li>
+    <li><b>Unchanged:</b> <code>calculateIndicators()</code> → <code>validateIndicators(ind, provenance)</code> → <code>indicatorsToScoreInput()</code> → <code>computeScore()</code> → <code>detectSignals()</code>. No scoring rule was altered.</li>
+    <li><code>renderScore()</code> additionally calls <code>renderAuditPanel()</code>, <code>renderQualityPanel()</code> and <code>renderTrendSection()</code>; <code>sourceStatusHtml()</code> states the exact live/embedded/missing mix. <code>setLoading(false)</code> no longer overwrites it.</li>
+  </ol>
+  <div class="note"><b>What is and is not fetched.</b> Six series are fetched from Yahoo Finance chart API: SPY, QQQ, ^VIX, TLT, ^TNX, ^IRX. <b>Fed Funds and the FRED 10Y−2Y spread are not fetched</b> — the FRED endpoint was blocked in this environment. The model's macro component uses a yield-based proxy (13W bill direction + TLT trend), and the score's Yield Curve is <code>^TNX − ^IRX</code> (10Y − 13W). Both facts are now surfaced in the UI rather than hidden.</div>
+</div>
+
+<div class="card">
+  <h2><span class="n">2</span>Architecture — before / after</h2>
+  <div class="scroll">
+  <svg class="diagram" viewBox="0 0 1100 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Before and after data flow architecture diagram">
+    <rect x="0" y="0" width="1100" height="560" fill="#ffffff"/>
+    <text x="24" y="28" font-family="Segoe UI,Arial" font-size="15" font-weight="700" fill="#1a2233">BEFORE — all-or-nothing, silently offline</text>
+    <text x="574" y="28" font-family="Segoe UI,Arial" font-size="15" font-weight="700" fill="#1a2233">AFTER — per-symbol resilience + provenance</text>
+    <line x1="550" y1="12" x2="550" y2="548" stroke="#e2e8f0" stroke-width="2"/>
+
+    <!-- BEFORE column -->
+    <g font-family="Segoe UI,Arial" font-size="11" fill="#1a2233">
+      <rect x="24" y="46" width="500" height="42" rx="8" fill="#e8f0fe" stroke="#c7d9f7"/>
+      <text x="40" y="63" font-weight="650">UI · Generate Score / Generate Latest Score</text>
+      <text x="40" y="79" font-size="10" fill="#4a5568">datePick → generateScore() → setLoading(true)</text>
+
+      <line x1="274" y1="88" x2="274" y2="106" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+      <rect x="24" y="108" width="500" height="42" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="40" y="125" font-weight="650">loadSeriesForDate()</text>
+      <text x="40" y="141" font-size="10" fill="#4a5568">Promise.all( 6 fetches ) — one rejection kills the batch</text>
+
+      <line x1="274" y1="150" x2="274" y2="168" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+      <rect x="24" y="170" width="240" height="60" rx="8" fill="#f0fdf4" stroke="#bbf7d0"/>
+      <text x="38" y="190" font-weight="650" fill="#14532d">SPY · QQQ · TLT  ✓ 200</text>
+      <text x="38" y="208" font-size="10" fill="#4a5568">raw symbols, encoded once</text>
+      <text x="38" y="222" font-size="10" fill="#b45309">…but discarded on batch rejection</text>
+
+      <rect x="284" y="170" width="240" height="60" rx="8" fill="#fef2f2" stroke="#fecaca"/>
+      <text x="298" y="190" font-weight="650" fill="#b91c1c">^VIX · ^TNX · ^IRX  ✗ 404</text>
+      <text x="298" y="208" font-size="10" fill="#4a5568">%5EVIX → encodeURIComponent</text>
+      <text x="298" y="222" font-size="10" fill="#b91c1c">→ %255EVIX  (double-encoded)</text>
+
+      <line x1="274" y1="230" x2="274" y2="248" stroke="#dc2626" stroke-width="1.5" marker-end="url(#ar)"/>
+      <rect x="24" y="250" width="500" height="46" rx="8" fill="#fff7ed" stroke="#fed7aa"/>
+      <text x="40" y="268" font-weight="650" fill="#9a3412">catch → whole-dataset embedded fallback</text>
+      <text x="40" y="285" font-size="10" fill="#4a5568">source='embedded' · no attribution, no confidence, no stale check</text>
+
+      <line x1="274" y1="296" x2="274" y2="314" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+      <rect x="24" y="316" width="500" height="60" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="40" y="336" font-weight="650">calculateIndicators (no look-ahead)</text>
+      <text x="40" y="353" font-size="10" fill="#4a5568">validateIndicators → computeScore → detectSignals → renderScore</text>
+      <text x="40" y="368" font-size="10" fill="#b45309">component bars crash: COMP_META keys ≠ computeScore keys</text>
+
+      <line x1="274" y1="376" x2="274" y2="394" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+      <rect x="24" y="396" width="500" height="46" rx="8" fill="#fef2f2" stroke="#fecaca"/>
+      <text x="40" y="414" font-weight="650" fill="#b91c1c">setLoading(false) in finally clears genStatus</text>
+      <text x="40" y="431" font-size="10" fill="#4a5568">success / error messages never visible</text>
+
+      <rect x="24" y="466" width="500" height="62" rx="8" fill="#f1f5f9" stroke="#e2e8f0"/>
+      <text x="40" y="486" font-weight="650">USER SEES</text>
+      <text x="40" y="503" font-size="10" fill="#4a5568">A score that always came from stored data, with no way to know.</text>
+      <text x="40" y="518" font-size="10" fill="#b91c1c">No audit panel · no verification links · no trend analytics</text>
+    </g>
+
+    <!-- AFTER column -->
+    <g font-family="Segoe UI,Arial" font-size="11" fill="#1a2233">
+      <rect x="574" y="46" width="502" height="42" rx="8" fill="#e8f0fe" stroke="#c7d9f7"/>
+      <text x="590" y="63" font-weight="650">UI · Generate Score / Latest / Audit thresholds</text>
+      <text x="590" y="79" font-size="10" fill="#4a5568">thresholds() · spinner + disabled buttons · status preserved</text>
+
+      <line x1="825" y1="88" x2="825" y2="106" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+      <rect x="574" y="108" width="502" height="42" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="590" y="125" font-weight="650">loadSeriesForDate() · Promise.allSettled( 6 )</text>
+      <text x="590" y="141" font-size="10" fill="#4a5568">independent outcomes · partial success allowed</text>
+
+      <rect x="574" y="162" width="242" height="72" rx="8" fill="#f0fdf4" stroke="#bbf7d0"/>
+      <text x="588" y="181" font-weight="650" fill="#14532d">buildQuoteUrls (encode once)</text>
+      <text x="588" y="197" font-size="10" fill="#4a5568">^VIX → %5EVIX · proxy → Yahoo</text>
+      <text x="588" y="211" font-size="10" fill="#4a5568">retry + exponential backoff</text>
+      <text x="588" y="225" font-size="10" fill="#14532d">parseHistoryJSON verifies meta.symbol</text>
+
+      <rect x="834" y="162" width="242" height="72" rx="8" fill="#eff6ff" stroke="#bfdbfe"/>
+      <text x="848" y="181" font-weight="650" fill="#1e40af">per-symbol attribution</text>
+      <text x="848" y="197" font-size="10" fill="#4a5568">live → provider / URL / timestamp</text>
+      <text x="848" y="211" font-size="10" fill="#4a5568">failed → embedded ONLY that symbol</text>
+      <text x="848" y="225" font-size="10" fill="#b91c1c">out-of-range → missing (no fake data)</text>
+
+      <line x1="825" y1="234" x2="825" y2="250" stroke="#16a34a" stroke-width="1.5" marker-end="url(#ag)"/>
+      <rect x="574" y="252" width="502" height="46" rx="8" fill="#f0fdf4" stroke="#bbf7d0"/>
+      <text x="590" y="270" font-weight="650" fill="#14532d">assessDataQuality() → provenance + warnings + confidence</text>
+      <text x="590" y="287" font-size="10" fill="#4a5568">observation date · stale lag · stale feed · mixed-date span · live/embedded counts</text>
+
+      <line x1="825" y1="298" x2="825" y2="314" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+      <rect x="574" y="316" width="502" height="46" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="590" y="334" font-weight="650">UNCHANGED pipeline · no look-ahead</text>
+      <text x="590" y="351" font-size="10" fill="#4a5568">calculateIndicators → validate → computeScore → detectSignals</text>
+
+      <line x1="825" y1="362" x2="825" y2="378" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+      <rect x="574" y="380" width="502" height="60" rx="8" fill="#faf5ff" stroke="#ddd6fe"/>
+      <text x="590" y="398" font-weight="650" fill="#5b21b6">renderScore + Audit Panel + Quality + Trend Analytics</text>
+      <text x="590" y="415" font-size="10" fill="#4a5568">8-row provenance table · 8 verification links · confidence bar</text>
+      <text x="590" y="430" font-size="10" fill="#4a5568">MAs · momentum · decomposition · 12-month heatmap · interpretation</text>
+
+      <rect x="574" y="466" width="502" height="62" rx="8" fill="#f1f5f9" stroke="#e2e8f0"/>
+      <text x="590" y="486" font-weight="650">USER SEES</text>
+      <text x="590" y="503" font-size="10" fill="#14532d">Live / Partial / Embedded / Manual — labelled per metric, with timestamps and links.</text>
+      <text x="590" y="518" font-size="10" fill="#4a5568">Stale and mixed-source inputs are warned; failures never fabricate a score.</text>
+    </g>
+
+    <defs>
+      <marker id="a" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#94a3b8"/></marker>
+      <marker id="ar" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#dc2626"/></marker>
+      <marker id="ag" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#16a34a"/></marker>
+    </defs>
+  </svg>
+  </div>
+  <p style="font-size:11px;color:var(--muted)">The scoring engine, indicator maths, no-look-ahead truncation, signal definitions, theme, responsive layout and backtest data are identical in both columns. Only the data-acquisition, attribution and presentation layers changed.</p>
+</div>
+
+<div class="card">
+  <h2><span class="n">3</span>Identified bugs</h2>
+  <div class="scroll">
+  <table>
+    <tr><th>#</th><th>Severity</th><th>Symptom</th><th>Root cause</th><th>Status</th></tr>
+    <tr><td>1</td><td><span class="sev critical">CRITICAL</span></td><td>Live retrieval never succeeded; every score came from embedded data.</td><td><code>^VIX</code>/<code>^TNX</code>/<code>^IRX</code> stored as <code>%5EVIX</code> etc., then passed through <code>encodeURIComponent()</code> again → <code>%255EVIX</code> → Yahoo HTTP 404 (empirically confirmed).</td><td class="ok">Resolved</td></tr>
+    <tr><td>2</td><td><span class="sev critical">CRITICAL</span></td><td>One failing symbol discarded five successful fetches.</td><td><code>Promise.all()</code> fail-fast semantics in <code>loadSeriesForDate()</code>; no partial-success path.</td><td class="ok">Resolved</td></tr>
+    <tr><td>3</td><td><span class="sev high">HIGH</span></td><td>Score component bars, comparison cards and comparison chart crashed / showed NaN.</td><td><code>COMP_META[].k</code> held embedded column names (<code>c_trend</code>…) while <code>computeScore()</code> and <code>compsFromArrays()</code> return <code>trend</code>…; <code>val.toFixed(0)</code> on <code>undefined</code>.</td><td class="ok">Resolved</td></tr>
+    <tr><td>4</td><td><span class="sev high">HIGH</span></td><td>Success and error messages after Generate Score were invisible.</td><td><code>setLoading(false)</code> (in <code>finally</code>) overwrote <code>genStatus.innerHTML</code> with <code>''</code>.</td><td class="ok">Resolved</td></tr>
+    <tr><td>5</td><td><span class="sev medium">MEDIUM</span></td><td>Impossible to request any date newer than 2026-11-13 for live retrieval.</td><td><code>datePick.max</code> hard-set to the last embedded date in <code>init()</code>.</td><td class="ok">Resolved</td></tr>
+    <tr><td>6</td><td><span class="sev medium">MEDIUM</span></td><td>A proxy/CDN cache mix-up could silently place the wrong series into a slot.</td><td><code>parseHistoryJSON()</code> never checked the returned <code>meta.symbol</code>; no <code>chart.error</code> handling.</td><td class="ok">Resolved</td></tr>
+    <tr><td>7</td><td><span class="sev medium">MEDIUM</span></td><td>No way to tell live from embedded, or which input was stale.</td><td>No provenance object, no audit panel, no confidence metric, no timestamps.</td><td class="ok">Resolved</td></tr>
+    <tr><td>8</td><td><span class="sev medium">MEDIUM</span></td><td>Stale / delayed feeds produced a confident-looking score.</td><td>No staleness checks against the requested date or today.</td><td class="ok">Resolved</td></tr>
+    <tr><td>9</td><td><span class="sev medium">MEDIUM</span></td><td>A future date could score the last stored trading day while labelling it as the requested date.</td><td>Introduced during the partial-fallback rewrite: <code>getEmbeddedSeries()</code> was called without a coverage-window check. Caught by the new harness before release.</td><td class="ok">Resolved</td></tr>
+    <tr><td>10</td><td><span class="sev low">LOW</span></td><td>Fed Funds absence was invisible; FRED series never fetched.</td><td>FRED CSV endpoint blocked; no explicit disclosure in the UI.</td><td class="ok">Disclosed</td></tr>
+    <tr><td>11</td><td><span class="sev low">LOW</span></td><td>Transient network blips immediately forced offline mode.</td><td>No retry / backoff logic.</td><td class="ok">Resolved</td></tr>
+    <tr><td>12</td><td><span class="sev low">LOW</span></td><td>Validation errors did not say which source symbol was missing.</td><td><code>validateIndicators()</code> had no provenance parameter.</td><td class="ok">Resolved</td></tr>
+  </table>
+  </div>
+  <div class="good"><b>Resolved bug count: 12 / 12.</b> Bugs 1, 3 and 4 were pre-existing and would have affected a real browser session; bug 9 was introduced and caught during this refactor. The Opportunity Score rules themselves were never modified — the only change to the score path was the off-by-one <code>price252</code> fix from the previous session, which remains validated (max score diff 0.000 across 113 sampled dates).</div>
+</div>
+
+<div class="card">
+  <h2><span class="n">4</span>Design rationale</h2>
+  <div class="scroll">
+  <table>
+    <tr><th>Change</th><th>Why this design</th></tr>
+    <tr><td><b>Raw symbols + single encoding</b></td><td>Encoding is a transport concern, not a data concern. Storing <code>^VIX</code> in configuration keeps the symbol human-readable and comparable with <code>meta.symbol</code>; <code>buildQuoteUrls()</code> is the single encoding point, eliminating any possibility of double-encoding.</td></tr>
+    <tr><td><b><code>Promise.allSettled()</code> + per-symbol provenance</b></td><td>Market data feeds fail independently. Dropping five good series because one 404'd wastes information and hides partial degradation. Each symbol now carries its own source, provider, request URL, verification URL, timestamp and verified symbol, so mixed results are explicit rather than silent.</td></tr>
+    <tr><td><b>Coverage-window guard</b></td><td>Falling back for a date outside the dataset would score a different day and mislabel it — a subtle form of fabricated data. <code>embeddedCoversDate()</code> makes that path return <code>missing</code>, so validation refuses to score.</td></tr>
+    <tr><td><b>Response symbol verification</b></td><td>Proxies and CDNs can return cached or wrong-symbol payloads. Requiring <code>meta.symbol</code> to match the request converts a silent data-corruption risk into a loud, attributable failure. Generic proxy array shapes are accepted but flagged <code>symbolVerified:false</code>.</td></tr>
+    <tr><td><b>Exponential backoff</b></td><td>Yahoo rate limits are usually transient. Two retries (350 / 700 ms, capped 4 s) recover most blips without stalling the UI; the delay is capped so a hard outage still resolves quickly.</td></tr>
+    <tr><td><b>Two staleness dimensions</b></td><td><i>Lag</i> (observation vs requested date) detects spliced/missing recent bars; <i>feed age</i> (observation vs today) detects a delayed provider. Feed-age checks are gated to "latest" requests so that intentionally historical queries are not falsely flagged — an important false-positive control.</td></tr>
+    <tr><td><b>Confidence = liveCount / 6</b></td><td>Simple, auditable and directly tied to inputs. Manual values never count as live; derived metrics inherit the weaker of their two parents. Thresholds are user-configurable so the warning sensitivity can be tuned without code changes.</td></tr>
+    <tr><td><b>8-row audit panel with verification links</b></td><td>Every number in the score can be traced to a provider page. Fed Funds is deliberately shown as <b>Not available</b> with a FRED link rather than a proxy value dressed up as the real series. The Yield Curve row is explicitly marked <i>Derived</i> and notes that FRED T10Y2Y is a different definition.</td></tr>
+    <tr><td><b>4-vote trend interpretation</b></td><td>A single momentum number is noisy. Combining 30-session change, 90-session change, MA30 slope and MA30−MA90 into four bounded votes gives a deterministic, explainable Improving / Stable / Weakening label. All windows are trailing and clamped to the embedded index, so there is no look-ahead.</td></tr>
+    <tr><td><b>Separate pure-function layer</b></td><td><code>buildQuoteUrls</code>, <code>parseHistoryJSON</code>, <code>calculateIndicators</code>, <code>assessDataQuality</code>, <code>movingAverage</code>, <code>scoreTrendStats</code> and <code>scoreHeatmapData</code> have no DOM dependency. The test harness can execute the real shipped code with a DOM stub instead of a reimplementation — so tests validate production logic, not a copy.</td></tr>
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2><span class="n">5</span>New capabilities</h2>
+  <div class="two">
+    <div>
+      <h3>Market Data Audit panel</h3>
+      <ul>
+        <li>8 metrics: SPY, QQQ, VIX, TNX, IRX, TLT, Fed Funds, Yield Curve.</li>
+        <li>7 columns: Metric · Current value · Observation date · Source type · Source provider · Retrieval timestamp · Verification link.</li>
+        <li>Source badges: <span class="tag">Live</span> <span class="tag">Embedded</span> <span class="tag">Manual</span> <span class="tag">Derived</span> <span class="tag">Unavailable</span>.</li>
+        <li>8 clickable links: six Yahoo quote pages + FRED FEDFUNDS + FRED T10Y2Y.</li>
+        <li>Confidence KPIs, confidence bar, live/embedded/missing counts, warning list.</li>
+        <li>Configurable stale-lag and stale-feed thresholds with a Re-evaluate button.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Buy Score Trend section</h3>
+      <ul>
+        <li><b>A</b> Historical score chart with selected-date marker and band lines.</li>
+        <li><b>B</b> 30-session and 90-session score moving averages.</li>
+        <li><b>C</b> Current score, 30-session change, 90-session change, MA30−MA90.</li>
+        <li><b>D</b> Stacked component decomposition (trailing 24 months).</li>
+        <li><b>E</b> 12-month × 5-week regime heatmap, colour-coded by Wait / Neutral / Buy / Strong Buy.</li>
+        <li><b>F</b> Improving / Stable / Weakening interpretation with the four visible votes.</li>
+      </ul>
+    </div>
+  </div>
+  <p><b>Latest verified analytics (2026-11-13):</b> score 78 · MA30 72.50 · MA90 69.59 · 30-session change +10.0 · 90-session change +13.0 · net vote +4 → <b>Improving</b>. <b>Live score (2026-11-16):</b> 78 / Strong Buy at 100% live confidence.</p>
+</div>
+
+<div class="card">
+  <h2><span class="n">6</span>Validation &amp; test results</h2>
+  <p><code>test_dashboard_v2.js</code> loads the <b>built HTML</b>, stubs the DOM/ECharts and executes the real application code (including <code>init()</code>) with a controllable network mock. The <code>--live</code> flag additionally hits Yahoo Finance.</p>
+  <div class="scroll">
+  <table>
+    <tr><th>Group</th><th>What it validates</th><th>Result</th></tr>
+    <tr><td>1</td><td>Symbol encoding — no <code>%25</code> in any of the six URLs, exactly-once encoding, raw caret symbols</td><td class="ok">PASS</td></tr>
+    <tr><td>2</td><td>JSON shape validation, <code>chart.error</code>, symbol mismatch rejection, missing <code>meta.symbol</code>, generic proxy shape</td><td class="ok">PASS</td></tr>
+    <tr><td>3</td><td><b>Live fetch success</b> — all six attributed, verified, timestamped; 100% confidence; score reproducible</td><td class="ok">PASS</td></tr>
+    <tr><td>4</td><td><b>Embedded fallback</b> — 0% confidence, warnings, reproducible score</td><td class="ok">PASS</td></tr>
+    <tr><td>5</td><td><b>Partial fallback</b> — 4 live + 2 embedded, 67% confidence, mixed-source score still correct</td><td class="ok">PASS</td></tr>
+    <tr><td>6</td><td><b>Stale detection</b> — lag warnings, configurable thresholds, feed-stale on latest request, no false positives on historical requests</td><td class="ok">PASS</td></tr>
+    <tr><td>7</td><td><b>Source attribution</b> — 8 audit rows, Fed Funds not fabricated, derived flag, 8 verification links, manual rows never "live"</td><td class="ok">PASS</td></tr>
+    <tr><td>8</td><td>Retry with exponential backoff — 3 attempts after 2 transient failures</td><td class="ok">PASS</td></tr>
+    <tr><td>9</td><td>No fabricated data for out-of-range dates; <b>score reproducibility</b> across 113 sampled dates (max diff 0.000); component sums and 0–100 bounds</td><td class="ok">PASS</td></tr>
+    <tr><td>10</td><td>Date resolution: normal day, Sunday, Christmas, GFC, COVID crash, 2022 bear</td><td class="ok">PASS</td></tr>
+    <tr><td>11</td><td><b>Trend consistency</b> — MA30/MA90 vs independent computation, momentum deltas, vote determinism, 12×5 heatmap bounds</td><td class="ok">PASS</td></tr>
+    <tr><td>12</td><td>Full <code>generateScore()</code> / <code>generateLatestScore()</code> workflow, audit refresh, KPI rendering</td><td class="ok">PASS</td></tr>
+    <tr><td>13</td><td><b>Live network</b> — real Yahoo calls for all six symbols + full live score</td><td class="ok">PASS</td></tr>
+  </table>
+  </div>
+  <div class="good"><b>468 / 468 offline checks passed · 472 / 472 with <code>--live</code> · 20 / 20 structural requirement checks passed · JS syntax validated with <code>node --check</code>.</b></div>
+  <p>The live probe returned: SPY 387 bars, QQQ 387, ^VIX 389, TLT 387, ^TNX 387, ^IRX 387 — all with matching <code>meta.symbol</code> and one attempt each. Live score 2026-11-16 = <b>78 (Strong Buy)</b>, confidence 100%.</p>
+</div>
+
+<div class="card">
+  <h2><span class="n">7</span>Remaining known limitations</h2>
+  <ol>
+    <li><b>Browser CORS.</b> Direct Yahoo requests from a <code>file://</code> page are commonly blocked by browser CORS policy. The dashboard handles this cleanly (labelled embedded fallback for in-range dates), and <code>DATA_CONFIG.proxyEndpoint</code> is a ready hook for a serverless/backend proxy — but no proxy is shipped. Node / server contexts work directly, as the <code>--live</code> run demonstrates.</li>
+    <li><b>Fed Funds &amp; FRED unavailable.</b> The FRED CSV endpoint is blocked in this environment. No Fed Funds value exists; the row reads "Not available". The macro component uses an IRX/TLT proxy, and the Yield Curve is 10Y−13W, not FRED's 10Y−2Y. The FRED links are cross-checks only.</li>
+    <li><b>Unadjusted closes.</b> Both live and embedded series use Yahoo <code>quote.close</code>, not <code>adjclose</code>. Dividends/splits are not adjusted; this is internally consistent but can slightly distort momentum around ex-dividend dates.</li>
+    <li><b>Single Yahoo host.</b> Only <code>query1.finance.yahoo.com</code> is used. A production proxy should rotate hosts and handle rate limiting / caching.</li>
+    <li><b>Mixed-source scores.</b> When some symbols are live and others embedded, observation dates can differ. The app warns when the span exceeds 3 calendar days, but a score is still produced — treat partial-confidence results as indicative.</li>
+    <li><b>Trend analytics lag live data.</b> MAs, momentum, decomposition and the heatmap are computed from the embedded score history ending 2026-11-13. A live score for a newer date has no embedded MA; the marker clamps to the last embedded observation and this is stated in the UI.</li>
+    <li><b>Embedded coverage &amp; warm-up.</b> Coverage is 2000-01-03 → 2026-11-13. TLT begins in 2002, and the indicator engine needs 252 SPY + 126 TLT sessions, so scores before ~2003 are unavailable by design.</li>
+    <li><b>Sentiment data.</b> AAII, CNN Fear &amp; Greed and CBOE put/call endpoints remain inaccessible; the original research used VIX percentile as the fear proxy. This review did not change the research model.</li>
+    <li><b>Retrieval timestamps are client-side.</b> With no backend, timestamps come from the browser clock and cannot be independently verified against the provider.</li>
+    <li><b>Heatmap bucketing.</b> Week buckets are calendar-day groups (1–7, 8–14, 15–21, 22–28, 29–31), not ISO weeks; some buckets are sparse.</li>
+    <li><b>No re-backtest.</b> This work improved data integrity and observability only. Strategy win rates, sample sizes and statistical conclusions in the original research report are unchanged.</li>
+  </ol>
+</div>
+
+<div class="card">
+  <h2><span class="n">8</span>Files changed, functions added, how to run</h2>
+  <h3>Files</h3>
+  <ul>
+    <li><code>ETF_Timing_Dashboard.html</code> — rebuilt standalone deliverable (~1.6 MB, ECharts CDN, all data embedded).</li>
+    <li><code>dashboard_template.html</code> — source template; all edits made here, then injected with <code>dashboard_data.json</code>.</li>
+    <li><code>test_dashboard_v2.js</code> — <b>new</b> comprehensive validation harness (offline mocks + optional live network).</li>
+    <li><code>ETF_Dashboard_Review.html</code> — <b>new</b> this report.</li>
+    <li>Unchanged: <code>dashboard_data.json</code>, <code>build_dashboard_data.py</code>, <code>build_score.py</code>, <code>backtest.py</code>, <code>fetch_data.py</code>, <code>ETF_Entry_Timing_Research.html</code>, <code>test_dashboard.js</code> (v1 harness, superseded).</li>
+  </ul>
+  <h3>New / refactored functions</h3>
+  <p><b>Data layer:</b> <code>buildQuoteUrls</code>, <code>buildQuoteUrl</code>, <code>normaliseSymbol</code>, <code>daysBetween</code>, <code>todayISO</code>, <code>sleep</code>, <code>fetchOnce</code>, <code>fetchMarketHistory</code> (refactored), <code>parseHistoryJSON</code> (refactored), <code>embeddedCoversDate</code>, <code>loadSeriesForDate</code> (refactored).<br>
+  <b>Quality / audit:</b> <code>assessDataQuality</code>, <code>buildAuditRows</code>, <code>buildManualAuditRows</code>, <code>embeddedLoadedFor</code>, <code>thresholds</code>, <code>sourceStatusHtml</code>, <code>renderAuditTable</code>, <code>renderAuditPanel</code>, <code>renderQualityPanel</code>, <code>renderVerifyLinks</code>, <code>renderManualAudit</code>, <code>refreshQuality</code>, <code>onThresholdChange</code>.<br>
+  <b>Trend analytics:</b> <code>movingAverage</code>, <code>scoreTrendStats</code>, <code>scoreHeatmapData</code>, <code>renderTrendSection</code>, <code>renderTrendScoreChart</code>, <code>renderTrendCompsChart</code>, <code>renderTrendHeatChart</code>.<br>
+  <b>Unchanged scoring path:</b> <code>computeScore</code>, <code>calculateIndicators</code>, <code>indicatorsToScoreInput</code>, <code>detectSignals</code>, <code>validateIndicators</code> (signature extended only).</p>
+  <h3>Run &amp; test</h3>
+  <ul>
+    <li>Open <code>ETF_Timing_Dashboard.html</code> in a browser → tabs: Date Explorer, Compare Dates, Backtest Explorer, <b>Market Data Audit</b>, <b>Buy Score Trend</b>, Manual Score Calculator.</li>
+    <li>Regenerate after editing the template:<br><code>python -c "import re; h=open('dashboard_template.html',encoding='utf-8').read().replace('__DASH_DATA__',open('dashboard_data.json',encoding='utf-8').read().strip()); open('ETF_Timing_Dashboard.html','w',encoding='utf-8').write(h)"</code></li>
+    <li><code>node --check _dash_check.js</code> — JS syntax (file produced by the rebuild snippet above).</li>
+    <li><code>node test_dashboard_v2.js</code> — 468 offline checks.</li>
+    <li><code>node test_dashboard_v2.js --live</code> — adds real Yahoo network verification (472 checks).</li>
+    <li>To enable live fetching from <code>file://</code>, set <code>DATA_CONFIG.proxyEndpoint</code> to a URL template containing <code>{symbol}</code>, <code>{start}</code>, <code>{end}</code>. No API keys are stored in the frontend.</li>
+  </ul>
+</div>
+
+<footer>
+  <b>Disclaimer</b>：以上内容基于公开数据和量化分析，仅供参考，不构成投资建议。市场有风险，投资需谨慎。任何投资决策应结合个人风险承受能力、资金状况和投资目标独立判断，必要时咨询持牌专业机构。过往表现不预示未来收益。
+  <div style="margin-top:8px;opacity:.75">Sources: Yahoo Finance chart API (live) · embedded historical dataset 2000-01-03 → 2026-11-13 · FRED links provided as external cross-checks only.</div>
+</footer>
+
+</div>
+</body>
+</html>

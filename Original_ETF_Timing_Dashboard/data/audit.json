@@ -1,0 +1,433 @@
+{
+  "summary": {
+    "generated_at": "2026-11-17T09:09:10.559094Z",
+    "symbols": 21,
+    "pass": 21,
+    "warning": 0,
+    "fail": 0,
+    "core_failures": [],
+    "gate": "PASS"
+  },
+  "symbols": {
+    "HYG": {
+      "symbol": "HYG",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:42.528279Z",
+      "data_points": 4933,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "IRX": {
+      "symbol": "IRX",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:41.827987Z",
+      "data_points": 7003,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "IWM": {
+      "symbol": "IWM",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:45.268299Z",
+      "data_points": 6658,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "LQD": {
+      "symbol": "LQD",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:43.744240Z",
+      "data_points": 6115,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:38.584623Z",
+      "data_points": 6966,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "RSP": {
+      "symbol": "RSP",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:44.443699Z",
+      "data_points": 5925,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "SPY": {
+      "symbol": "SPY",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:37.502625Z",
+      "data_points": 7011,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "TLT": {
+      "symbol": "TLT",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:40.251454Z",
+      "data_points": 6115,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "TNX": {
+      "symbol": "TNX",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:40.970073Z",
+      "data_points": 7003,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "VIX": {
+      "symbol": "VIX",
+      "source": "Yahoo",
+      "last_updated": "2026-11-17",
+      "fetched_at": "2026-11-17T09:06:39.481529Z",
+      "data_points": 7014,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 0
+    },
+    "XLB": {
+      "symbol": "XLB",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:51.841685Z",
+      "data_points": 7011,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "XLC": {
+      "symbol": "XLC",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:53.567530Z",
+      "data_points": 2115,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "XLE": {
+      "symbol": "XLE",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:51.034496Z",
+      "data_points": 7011,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:47.347370Z",
+      "data_points": 7011,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "XLI": {
+      "symbol": "XLI",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:50.333307Z",
+      "data_points": 7011,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "XLK": {
+      "symbol": "XLK",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:46.113424Z",
+      "data_points": 7011,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "XLP": {
+      "symbol": "XLP",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:49.635652Z",
+      "data_points": 7011,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "XLRE": {
+      "symbol": "XLRE",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:52.379095Z",
+      "data_points": 2793,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "XLU": {
+      "symbol": "XLU",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:53.044748Z",
+      "data_points": 7011,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "XLV": {
+      "symbol": "XLV",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:48.053214Z",
+      "data_points": 7011,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    },
+    "XLY": {
+      "symbol": "XLY",
+      "source": "Yahoo",
+      "last_updated": "2026-11-16",
+      "fetched_at": "2026-11-17T09:06:48.871695Z",
+      "data_points": 7011,
+      "data_quality": "PASS",
+      "checks": {
+        "duplicate_dates": 0,
+        "missing_dates": 0,
+        "null_values": 0,
+        "infinite_values": 0,
+        "nonpositive_prices": 0,
+        "large_gaps": 0
+      },
+      "issues": [],
+      "price_basis": "adjusted",
+      "series_column": "adj_close",
+      "stale_days": 1
+    }
+  }
+}
