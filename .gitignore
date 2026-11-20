@@ -1,0 +1,13 @@
+# Python bytecode caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Do NOT ignore: data/, data_raw/, index*.html, .github/workflows/
+# Those are the committed outputs the daily jobs and Pages depend on.

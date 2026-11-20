@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ETF Decision Systems</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#f4f6f8; color:#16202b;
+         font-family:"Segoe UI",Arial,sans-serif; line-height:1.55; }
+  .wrap { max-width:760px; margin:0 auto; padding:48px 24px 64px; }
+  .kicker { font-size:11px; letter-spacing:.14em; color:#1d6f8c; font-weight:700; }
+  h1 { font-size:28px; margin:8px 0 6px; }
+  .sub { color:#5a6a78; margin:0 0 28px; }
+  .card { display:block; background:#fff; border:1px solid #dce3e9; border-radius:8px;
+          padding:20px 22px; margin-bottom:14px; text-decoration:none; color:inherit;
+          transition:border-color .15s, box-shadow .15s; }
+  .card:hover { border-color:#1d6f8c; box-shadow:0 3px 14px rgba(29,111,140,.10); }
+  .card h2 { font-size:17px; margin:0 0 6px; }
+  .card p { font-size:13px; color:#5a6a78; margin:0; }
+  .tag { display:inline-block; font-size:10px; letter-spacing:.08em; font-weight:700;
+         color:#1d6f8c; background:#e8f3f7; border-radius:3px; padding:2px 7px; margin-left:8px;
+         vertical-align:middle; }
+  .note { font-size:12px; color:#7a8895; margin-top:26px; border-top:1px solid #dce3e9; padding-top:16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">RESEARCH · DECISION SUPPORT</div>
+  <h1>ETF Decision Systems</h1>
+  <p class="sub">Observable conditions for long-term cash deployment. Not return forecasts, not investment advice.</p>
+
+  <a class="card" href="VOO_QQQ_Entry_Systems/index_v7.html">
+    <h2>VOO / QQQ Entry Decision System <span class="tag">v7 · LIVE DAILY</span></h2>
+    <p>Market regime, valuation, opportunity, deployment, credit, internals, opportunity cost — plus the DATA, OPERATIONS and WHY THIS SCORE tabs. Refreshed automatically after each US session.</p>
+  </a>
+
+  <a class="card" href="Original_ETF_Timing_Dashboard/index.html">
+    <h2>Original ETF Timing Dashboard <span class="tag">v1 LINEAGE</span></h2>
+    <p>Evidence-first walk-forward model with calibration, benchmarks and methodology audit. Refreshed by the separate <code>update-data.yml</code> workflow.</p>
+  </a>
+
+  <p class="note">Each system is self-contained in its own folder. Data is committed back to the repository by GitHub Actions, so the pages are static files — no browser-side data fetching.</p>
+</div>
+</body>
+</html>
