@@ -1,0 +1,17 @@
+{
+ "last": {
+  "date": "2026-11-19",
+  "voo": 38.5,
+  "qqq": 45.5,
+  "regime": "CORRECTION",
+  "detector": "NO",
+  "deployment": "0%"
+ },
+ "last_fired": {
+  "weekly_summary": "2026-11-19T14:47:53Z"
+ },
+ "last_weekly": "2026-W47",
+ "consecutive_yes": 0,
+ "runs": 9,
+ "last_evaluated": "2026-11-20T09:05:06Z"
+}

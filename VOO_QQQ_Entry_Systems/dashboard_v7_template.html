@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ETF Entry Decision System — v7</title>
+<style>
+:root{
+  --bg:#f4f6f8;--surface:#fff;--ink:#16202b;--muted:#5a6a78;--line:#dce3e9;
+  --accent:#1d6f8c;--accent-soft:#e8f2f6;--good:#17745a;--good-soft:#e6f3ee;
+  --warn:#a26616;--warn-soft:#fbf1e2;--bad:#ad342d;--bad-soft:#f9eae8;
+  --purple:#6b4a9c;--purple-soft:#f0ebf7;--chip:#eef2f6;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding:0 26px 70px}
+header.top{background:var(--surface);border-bottom:1px solid var(--line);padding:22px 0 16px}
+.brandrow{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;min-width:0}
+.brandrow>div:first-child{min-width:0;flex:1 1 440px}
+.brand{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:26px;line-height:1.25;margin:8px 0 6px;letter-spacing:-.02em;overflow-wrap:anywhere}
+.sub{color:var(--muted);font-size:12.5px;max-width:780px;overflow-wrap:anywhere}
+.metabox{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center;min-width:0}
+.pill{font-family:var(--mono);font-size:10.5px;padding:5px 9px;border:1px solid var(--line);
+ border-radius:20px;color:var(--muted);background:var(--chip);white-space:nowrap}
+.pill.key{background:var(--accent-soft);border-color:#bcd9e3;color:var(--accent);font-weight:700}
+nav.tabs{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+nav.tabs .wrap{padding:0 26px;display:flex;gap:2px;overflow-x:auto}
+nav.tabs button{appearance:none;border:0;background:transparent;color:var(--muted);font-family:var(--sans);
+ font-size:12px;font-weight:600;padding:14px 13px;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+nav.tabs button:hover{color:var(--ink)}
+nav.tabs button.active{color:var(--accent);border-bottom-color:var(--accent)}
+main{padding-top:24px}
+.tabpane{display:none}
+.tabpane.active{display:block}
+.sechead{display:flex;align-items:baseline;gap:12px;margin:0 0 12px;flex-wrap:wrap}
+.secnum{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.1em}
+h2{font-size:16px;margin:0;letter-spacing:-.01em}
+h3{font-size:13px;margin:18px 0 8px;color:var(--ink)}
+.sechnote{font-size:11.5px;color:var(--muted);margin-left:auto}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:19px 21px}
+section{margin-bottom:22px}
+.hero{background:linear-gradient(135deg,#eef6f9 0%,#fff 60%);border:1px solid #cfe1e9;
+ border-radius:6px;padding:22px 24px;margin-bottom:20px}
+.hero .hgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.hero .hcell{border-right:1px solid #dbe6ec;padding-right:14px;min-width:0}
+.hero .hcell:last-child{border-right:0}
+.hlabel{font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.hval{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:6px 0 2px;overflow-wrap:anywhere}
+.hsub{font-size:11px;color:var(--muted)}
+.hero .reason{margin-top:18px;padding:14px 16px;background:#fff;border:1px solid #dbe6ec;border-radius:4px;
+ font-size:13px;line-height:1.6}
+.hero .reason b{color:var(--accent)}
+.deploy{font-size:30px!important;color:var(--accent)}
+.qgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.qgrid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:1000px){.hero .hgrid,.qgrid3,.qgrid4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.hero .hgrid,.qgrid3,.qgrid4{grid-template-columns:1fr}
+ .hero .hcell{border-right:0;border-bottom:1px solid #dbe6ec;padding:0 0 12px}
+ .brandrow>div:first-child{flex:1 1 100%}.metabox{justify-content:flex-start;flex:1 1 100%}h1{font-size:21px}}
+.qcard{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);
+ border-radius:4px;padding:17px 18px;min-width:0}
+.qcard.good{border-top-color:var(--good)}.qcard.bad{border-top-color:var(--bad)}
+.qlabel{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.qans{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:8px 0 2px;overflow-wrap:anywhere}
+.qans.small{font-size:17px;line-height:1.35}
+.qlab2{font-size:12px;color:var(--accent);font-weight:600}
+.qdet{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.55}
+.scorebar{height:6px;background:#e8edf1;border-radius:4px;overflow:hidden;margin-top:10px}
+.scorebar i{display:block;height:100%}
+.badge{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:12px;font-weight:700}
+.badge.ok{background:var(--good-soft);color:var(--good)}
+.badge.mid{background:var(--warn-soft);color:var(--warn)}
+.badge.no{background:#eef1f4;color:var(--muted)}
+.badge.bear{background:var(--bad-soft);color:var(--bad)}
+.badge.bull{background:var(--good-soft);color:var(--good)}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700}
+th:first-child,td:first-child{text-align:left}
+td.lt{white-space:normal;text-align:left;max-width:280px;line-height:1.5}
+tbody tr:hover{background:#f8fafb}
+.note{font-size:11.5px;color:var(--muted);margin:0;line-height:1.6}
+.wrow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.wrow:last-child{border-bottom:0}
+.wname{color:var(--ink)}.wval{font-family:var(--mono);color:var(--accent);font-weight:700;white-space:nowrap}
+.chk{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.chk .yes{color:var(--good);font-weight:700;font-family:var(--mono)}
+.chk .no{color:var(--muted);font-family:var(--mono)}
+.simcard{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:15px 16px}
+.simtop{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.simname{font-weight:700;font-size:13px}.simscore{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent)}
+.simbar{height:6px;background:#e8edf1;border-radius:4px;overflow:hidden;margin:10px 0}
+.simbar i{display:block;height:100%}
+.simfeat{font-size:11px;color:var(--muted);line-height:1.6}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+ul.clean{margin:6px 0;padding-left:18px;font-size:11.5px;color:var(--muted);line-height:1.7}
+.switch{display:inline-flex;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:#fff}
+.switch button{appearance:none;border:0;background:transparent;padding:7px 15px;font-size:11.5px;font-weight:700;
+ color:var(--muted);cursor:pointer;font-family:var(--sans)}
+.switch button.active{background:var(--accent);color:#fff}
+.expert-only{display:none}
+body.expert .expert-only{display:block}
+body.expert .simple-only{display:none}
+.formula{font-family:var(--mono);font-size:11px;background:#f6f8fa;border:1px solid var(--line);
+ border-radius:4px;padding:10px 12px;white-space:pre-wrap;word-break:break-word;line-height:1.6}
+.kv{font-size:11.5px;color:var(--muted);line-height:1.7}
+.kv b{color:var(--ink)}
+.audit-num{font-family:var(--mono);font-weight:700;color:var(--accent)}
+footer.site{border-top:1px solid var(--line);margin-top:30px;padding-top:18px;font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="brandrow">
+    <div><div class="brand">ETF Entry Decision System · v7</div>
+      <h1>Four questions, four answers — one deployment decision</h1>
+      <div class="sub">Market regime, valuation, opportunity and deployment are reported separately.
+      This is a cash-deployment aid for long-term investors, not a return forecast.</div></div>
+    <div class="metabox" id="metastrip"></div>
+  </div>
+</div></header>
+<nav class="tabs"><div class="wrap" id="tabbar"></div></nav>
+<main class="wrap">
+  <div id="hero"></div>
+  <div class="tabpane active" id="pane-decision"></div>
+  <div class="tabpane" id="pane-regime"></div>
+  <div class="tabpane" id="pane-credit"></div>
+  <div class="tabpane" id="pane-internals"></div>
+  <div class="tabpane" id="pane-cost"></div>
+  <div class="tabpane" id="pane-why"></div>
+  <div class="tabpane" id="pane-data"></div>
+  <div class="tabpane" id="pane-analogues"></div>
+  <div class="tabpane" id="pane-ops"></div>
+  <div class="tabpane" id="pane-method"></div>
+</main>
+<footer class="site"><div class="wrap" id="sitefooter"></div></footer>
+<script id="payload" type="application/json">__PAYLOAD__</script>
+<script>__RENDER_JS__</script>
+</body>
+</html>

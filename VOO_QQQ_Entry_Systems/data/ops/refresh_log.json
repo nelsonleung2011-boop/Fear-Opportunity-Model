@@ -1,0 +1,32 @@
+[
+ {
+  "checked_at": "2026-11-19T14:54:37Z",
+  "status": "OK",
+  "sources_updated": 38,
+  "sources_failed": 2
+ },
+ {
+  "checked_at": "2026-11-19T14:55:45Z",
+  "status": "OK",
+  "sources_updated": 40,
+  "sources_failed": 0
+ },
+ {
+  "checked_at": "2026-11-19T15:02:35Z",
+  "status": "OK",
+  "sources_updated": 40,
+  "sources_failed": 0
+ },
+ {
+  "checked_at": "2026-11-19T15:05:00Z",
+  "status": "OK",
+  "sources_updated": 40,
+  "sources_failed": 0
+ },
+ {
+  "checked_at": "2026-11-20T09:05:01Z",
+  "status": "OK",
+  "sources_updated": 40,
+  "sources_failed": 0
+ }
+]

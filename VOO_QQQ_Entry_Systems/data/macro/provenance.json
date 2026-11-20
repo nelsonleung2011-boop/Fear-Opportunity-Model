@@ -1,0 +1,126 @@
+{
+  "WALCL": {
+    "source": "FRED fredgraph.csv",
+    "description": "Federal Reserve total assets, weekly (millions USD)",
+    "n": 1249,
+    "first": "2002-12-18",
+    "last": "2026-11-18",
+    "nominal_frequency": "weekly",
+    "publication_lag_days": 8,
+    "vintage": "LATEST REVISED (not real-time; see audit)"
+  },
+  "M2SL": {
+    "source": "FRED fredgraph.csv",
+    "description": "M2 money stock, monthly, seasonally adjusted (billions USD)",
+    "n": 813,
+    "first": "1959-01-01",
+    "last": "2026-09-01",
+    "nominal_frequency": "monthly",
+    "publication_lag_days": 75,
+    "vintage": "LATEST REVISED (not real-time; see audit)"
+  },
+  "NFCI": {
+    "source": "FRED fredgraph.csv",
+    "description": "Chicago Fed National Financial Conditions Index, weekly",
+    "n": 2915,
+    "first": "1971-01-08",
+    "last": "2026-11-13",
+    "nominal_frequency": "weekly",
+    "publication_lag_days": 10,
+    "vintage": "LATEST REVISED (not real-time; see audit)"
+  },
+  "GDP": {
+    "source": "FRED fredgraph.csv",
+    "description": "Nominal GDP, quarterly, SAAR (billions USD)",
+    "n": 319,
+    "first": "1947-01-01",
+    "last": "2026-07-01",
+    "nominal_frequency": "quarterly",
+    "publication_lag_days": 130,
+    "vintage": "LATEST REVISED (not real-time; see audit)"
+  },
+  "CAPE": {
+    "source": "multpl.com (Shiller-derived) monthly table",
+    "description": "Shiller cyclically adjusted P/E (CAPE)",
+    "n": 1870,
+    "first": "1871-02-01",
+    "last": "2026-11-01",
+    "nominal_frequency": "monthly",
+    "date_convention": "month_start",
+    "publication_lag_days": 95,
+    "vintage": "LATEST REVISED (not real-time; see audit)"
+  },
+  "DIVIDEND_YIELD": {
+    "source": "multpl.com (Shiller-derived) monthly table",
+    "description": "S&P 500 dividend yield, percent",
+    "n": 1866,
+    "first": "1871-01-31",
+    "last": "2026-06-30",
+    "nominal_frequency": "monthly",
+    "date_convention": "month_end",
+    "publication_lag_days": 95,
+    "vintage": "LATEST REVISED (not real-time; see audit)"
+  },
+  "PE_TRAILING": {
+    "source": "multpl.com (Shiller-derived) monthly table",
+    "description": "S&P 500 trailing P/E (SUBSTITUTE; forward P/E unavailable)",
+    "n": 1866,
+    "first": "1871-01-01",
+    "last": "2026-06-01",
+    "nominal_frequency": "monthly",
+    "date_convention": "month_start",
+    "publication_lag_days": 95,
+    "vintage": "LATEST REVISED (not real-time; see audit)"
+  },
+  "EARNINGS_YIELD": {
+    "source": "multpl.com (Shiller-derived) monthly table",
+    "description": "S&P 500 trailing earnings yield, percent",
+    "n": 1866,
+    "first": "1871-01-01",
+    "last": "2026-06-01",
+    "nominal_frequency": "monthly",
+    "date_convention": "month_start",
+    "publication_lag_days": 95,
+    "vintage": "LATEST REVISED (not real-time; see audit)"
+  },
+  "W5000": {
+    "source": "Yahoo ^W5000 (Wilshire 5000 Total Market Index, price)",
+    "description": "broad-market price index for the market-cap/GDP proxy",
+    "n": 6663,
+    "first": "2000-01-03",
+    "last": "2026-11-19",
+    "nominal_frequency": "daily",
+    "publication_lag_days": 1,
+    "caveat": "price index, NOT total market capitalisation; used as a proportional proxy"
+  },
+  "SOXX": {
+    "source": "Yahoo chart API, dividend-adjusted",
+    "description": "SOXX sector ETF daily prices",
+    "n": 6376,
+    "first": "2001-07-13",
+    "last": "2026-11-18",
+    "nominal_frequency": "daily",
+    "publication_lag_days": 0,
+    "caveat": "surviving fund only; no delisted sector funds in universe"
+  },
+  "SMH": {
+    "source": "Yahoo chart API, dividend-adjusted",
+    "description": "SMH sector ETF daily prices",
+    "n": 6655,
+    "first": "2000-06-05",
+    "last": "2026-11-18",
+    "nominal_frequency": "daily",
+    "publication_lag_days": 0,
+    "caveat": "surviving fund only; no delisted sector funds in universe"
+  },
+  "_meta": {
+    "built_at": "2026-11-19T10:16:20Z",
+    "alignment": "first-known-date = nominal date + publication_lag_days, then ffill",
+    "excluded_candidates": {
+      "FORWARD_PE": "No free historical real-time forward-earnings series exists; fabricating a proxy would violate the no-lookahead rule. EXCLUDED.",
+      "MARKET_CAP_TO_GDP": "Mathematically identical to the Buffett Indicator; counted once as val_buffett_proxy.",
+      "SHILLER_XLS": "Yale ie_data.xls is stale (ends 2023-09); retained only as a 2023 CAPE vintage for revision-magnitude audit."
+    },
+    "last_refresh": "2026-11-20T09:04:59Z"
+  }
+}

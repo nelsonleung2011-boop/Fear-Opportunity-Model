@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ETF Entry Decision System — v7</title>
+<style>
+:root{
+  --bg:#f4f6f8;--surface:#fff;--ink:#16202b;--muted:#5a6a78;--line:#dce3e9;
+  --accent:#1d6f8c;--accent-soft:#e8f2f6;--good:#17745a;--good-soft:#e6f3ee;
+  --warn:#a26616;--warn-soft:#fbf1e2;--bad:#ad342d;--bad-soft:#f9eae8;
+  --purple:#6b4a9c;--purple-soft:#f0ebf7;--chip:#eef2f6;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding:0 26px 70px}
+header.top{background:var(--surface);border-bottom:1px solid var(--line);padding:22px 0 16px}
+.brandrow{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;min-width:0}
+.brandrow>div:first-child{min-width:0;flex:1 1 440px}
+.brand{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:26px;line-height:1.25;margin:8px 0 6px;letter-spacing:-.02em;overflow-wrap:anywhere}
+.sub{color:var(--muted);font-size:12.5px;max-width:780px;overflow-wrap:anywhere}
+.metabox{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center;min-width:0}
+.pill{font-family:var(--mono);font-size:10.5px;padding:5px 9px;border:1px solid var(--line);
+ border-radius:20px;color:var(--muted);background:var(--chip);white-space:nowrap}
+.pill.key{background:var(--accent-soft);border-color:#bcd9e3;color:var(--accent);font-weight:700}
+nav.tabs{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+nav.tabs .wrap{padding:0 26px;display:flex;gap:2px;overflow-x:auto}
+nav.tabs button{appearance:none;border:0;background:transparent;color:var(--muted);font-family:var(--sans);
+ font-size:12px;font-weight:600;padding:14px 13px;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+nav.tabs button:hover{color:var(--ink)}
+nav.tabs button.active{color:var(--accent);border-bottom-color:var(--accent)}
+main{padding-top:24px}
+.tabpane{display:none}
+.tabpane.active{display:block}
+.sechead{display:flex;align-items:baseline;gap:12px;margin:0 0 12px;flex-wrap:wrap}
+.secnum{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.1em}
+h2{font-size:16px;margin:0;letter-spacing:-.01em}
+h3{font-size:13px;margin:18px 0 8px;color:var(--ink)}
+.sechnote{font-size:11.5px;color:var(--muted);margin-left:auto}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:19px 21px}
+section{margin-bottom:22px}
+.hero{background:linear-gradient(135deg,#eef6f9 0%,#fff 60%);border:1px solid #cfe1e9;
+ border-radius:6px;padding:22px 24px;margin-bottom:20px}
+.hero .hgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.hero .hcell{border-right:1px solid #dbe6ec;padding-right:14px;min-width:0}
+.hero .hcell:last-child{border-right:0}
+.hlabel{font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.hval{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:6px 0 2px;overflow-wrap:anywhere}
+.hsub{font-size:11px;color:var(--muted)}
+.hero .reason{margin-top:18px;padding:14px 16px;background:#fff;border:1px solid #dbe6ec;border-radius:4px;
+ font-size:13px;line-height:1.6}
+.hero .reason b{color:var(--accent)}
+.deploy{font-size:30px!important;color:var(--accent)}
+.qgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.qgrid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:1000px){.hero .hgrid,.qgrid3,.qgrid4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.hero .hgrid,.qgrid3,.qgrid4{grid-template-columns:1fr}
+ .hero .hcell{border-right:0;border-bottom:1px solid #dbe6ec;padding:0 0 12px}
+ .brandrow>div:first-child{flex:1 1 100%}.metabox{justify-content:flex-start;flex:1 1 100%}h1{font-size:21px}}
+.qcard{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);
+ border-radius:4px;padding:17px 18px;min-width:0}
+.qcard.good{border-top-color:var(--good)}.qcard.bad{border-top-color:var(--bad)}
+.qlabel{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.qans{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:8px 0 2px;overflow-wrap:anywhere}
+.qans.small{font-size:17px;line-height:1.35}
+.qlab2{font-size:12px;color:var(--accent);font-weight:600}
+.qdet{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.55}
+.scorebar{height:6px;background:#e8edf1;border-radius:4px;overflow:hidden;margin-top:10px}
+.scorebar i{display:block;height:100%}
+.badge{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:12px;font-weight:700}
+.badge.ok{background:var(--good-soft);color:var(--good)}
+.badge.mid{background:var(--warn-soft);color:var(--warn)}
+.badge.no{background:#eef1f4;color:var(--muted)}
+.badge.bear{background:var(--bad-soft);color:var(--bad)}
+.badge.bull{background:var(--good-soft);color:var(--good)}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700}
+th:first-child,td:first-child{text-align:left}
+td.lt{white-space:normal;text-align:left;max-width:280px;line-height:1.5}
+tbody tr:hover{background:#f8fafb}
+.note{font-size:11.5px;color:var(--muted);margin:0;line-height:1.6}
+.wrow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.wrow:last-child{border-bottom:0}
+.wname{color:var(--ink)}.wval{font-family:var(--mono);color:var(--accent);font-weight:700;white-space:nowrap}
+.chk{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.chk .yes{color:var(--good);font-weight:700;font-family:var(--mono)}
+.chk .no{color:var(--muted);font-family:var(--mono)}
+.simcard{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:15px 16px}
+.simtop{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.simname{font-weight:700;font-size:13px}.simscore{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent)}
+.simbar{height:6px;background:#e8edf1;border-radius:4px;overflow:hidden;margin:10px 0}
+.simbar i{display:block;height:100%}
+.simfeat{font-size:11px;color:var(--muted);line-height:1.6}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+ul.clean{margin:6px 0;padding-left:18px;font-size:11.5px;color:var(--muted);line-height:1.7}
+.switch{display:inline-flex;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:#fff}
+.switch button{appearance:none;border:0;background:transparent;padding:7px 15px;font-size:11.5px;font-weight:700;
+ color:var(--muted);cursor:pointer;font-family:var(--sans)}
+.switch button.active{background:var(--accent);color:#fff}
+.expert-only{display:none}
+body.expert .expert-only{display:block}
+body.expert .simple-only{display:none}
+.formula{font-family:var(--mono);font-size:11px;background:#f6f8fa;border:1px solid var(--line);
+ border-radius:4px;padding:10px 12px;white-space:pre-wrap;word-break:break-word;line-height:1.6}
+.kv{font-size:11.5px;color:var(--muted);line-height:1.7}
+.kv b{color:var(--ink)}
+.audit-num{font-family:var(--mono);font-weight:700;color:var(--accent)}
+footer.site{border-top:1px solid var(--line);margin-top:30px;padding-top:18px;font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="brandrow">
+    <div><div class="brand">ETF Entry Decision System · v7</div>
+      <h1>Four questions, four answers — one deployment decision</h1>
+      <div class="sub">Market regime, valuation, opportunity and deployment are reported separately.
+      This is a cash-deployment aid for long-term investors, not a return forecast.</div></div>
+    <div class="metabox" id="metastrip"></div>
+  </div>
+</div></header>
+<nav class="tabs"><div class="wrap" id="tabbar"></div></nav>
+<main class="wrap">
+  <div id="hero"></div>
+  <div class="tabpane active" id="pane-decision"></div>
+  <div class="tabpane" id="pane-regime"></div>
+  <div class="tabpane" id="pane-credit"></div>
+  <div class="tabpane" id="pane-internals"></div>
+  <div class="tabpane" id="pane-cost"></div>
+  <div class="tabpane" id="pane-why"></div>
+  <div class="tabpane" id="pane-data"></div>
+  <div class="tabpane" id="pane-analogues"></div>
+  <div class="tabpane" id="pane-ops"></div>
+  <div class="tabpane" id="pane-method"></div>
+</main>
+<footer class="site"><div class="wrap" id="sitefooter"></div></footer>
+<script id="payload" type="application/json">{"meta":{"version":"7.1 — Operational Entry Decision System","generated_at":"2026-11-20T09:05:06Z","as_of":"2026-11-19","philosophy":"Four separate concepts. Not a return predictor and not a model-scoring exercise. Built to help a long-term investor decide how aggressively to deploy cash today.","concepts":["Market Regime","Valuation","Opportunity","Deployment"],"weights":{"valuation":0.3,"opportunity":0.5,"risk":0.2},"inherited":"v6 opportunity framework, nonlinear VIX knots, drawdown bonuses, detector and analogues; v5 PIT macro; v4 price frames","seed":20261119},"hero":{"market_regime":"CORRECTION","regime_confidence":"Low","valuation":"Bubble-like","opportunity":"Poor Entry","deployment":"0%","deployment_label":"Pause lump sum","reason":"Fear is somewhat elevated. Valuation remains bubble-like. Conditions are better than normal, but not a rare panic.","always_answered":true},"final_page":{"q1_regime":"CORRECTION (Low confidence)","q2_valuation":"5.5/100 — Bubble-like","q3_opportunity":"39.5/100 — Poor Entry","q4_deployment":"0% — Pause lump sum","reason":"Fear is somewhat elevated. Valuation remains bubble-like. Conditions are better than normal, but not a rare panic."},"regime":{"state":"CORRECTION","confidence":"Low","agreement_pct":40.0,"votes":{"BULL":1,"CORRECTION":2,"BEAR":1,"PANIC":1},"inputs":{"VIX":{"raw":28.44,"state":"BEAR"},"Drawdown":{"raw":8.11,"state":"CORRECTION","unit":"%"},"Breadth":{"raw":60.0,"state":"CORRECTION","unit":"% above 200DMA"},"Credit":{"raw":74.7,"state":"PANIC","unit":"/100"},"Trend":{"raw":0.0244,"state":"BULL","unit":"below MA200"}},"rule":"Each input votes BULL/CORRECTION/BEAR/PANIC from pre-registered bands. Modal vote wins; ties break toward the more severe regime. Confidence = modal votes / 5."},"valuation":{"score":5.5,"label":"Bubble-like","components":{"cape":{"raw":41.0,"pct":3.4,"score":0.6,"name":"Shiller CAPE","direction":-1},"buffett":{"raw":2.213,"pct":2.7,"score":0.4,"name":"Buffett Indicator","direction":-1},"earnings_yield":{"raw":3.96,"pct":35.6,"score":21.2,"name":"Earnings Yield","direction":1},"equity_risk_premium":{"raw":-1.092,"pct":13.9,"score":5.2,"name":"Equity Risk Premium","direction":1},"real_yield":{"raw":2.88,"pct":0.5,"score":0.0,"name":"Real Yield (10Y TIPS)","direction":-1}},"explain":{"final":5.5,"base_score":5.5,"bonus":null,"reconciliation":"No additive bonus; component table sums directly to the final score.","formula":"Mean of five PIT valuation percentiles, each raised to 1.5 to emphasise extremes.","components":[{"name":"Shiller CAPE","raw":41.0,"normalised":0.6,"weight":0.2,"contribution":0.12,"delta_vs_neutral":-9.88,"direction":"Lower = cheaper","why":"PIT percentile 3.4 of history known at this date."},{"name":"Buffett Indicator","raw":2.213,"normalised":0.4,"weight":0.2,"contribution":0.08,"delta_vs_neutral":-9.92,"direction":"Lower = cheaper","why":"PIT percentile 2.7 of history known at this date."},{"name":"Earnings Yield","raw":3.96,"normalised":21.2,"weight":0.2,"contribution":4.24,"delta_vs_neutral":-5.76,"direction":"Higher = cheaper","why":"PIT percentile 35.6 of history known at this date."},{"name":"Equity Risk Premium","raw":-1.092,"normalised":5.2,"weight":0.2,"contribution":1.04,"delta_vs_neutral":-8.96,"direction":"Higher = cheaper","why":"PIT percentile 13.9 of history known at this date."},{"name":"Real Yield (10Y TIPS)","raw":2.88,"normalised":0.0,"weight":0.2,"contribution":0.0,"delta_vs_neutral":-10.0,"direction":"Lower = cheaper","why":"PIT percentile 0.5 of history known at this date."}],"top_positive":[{"name":"Earnings Yield","contribution":4.24,"delta_vs_neutral":-5.76},{"name":"Equity Risk Premium","contribution":1.04,"delta_vs_neutral":-8.96},{"name":"Shiller CAPE","contribution":0.12,"delta_vs_neutral":-9.88}],"top_negative":[{"name":"Real Yield (10Y TIPS)","contribution":0.0,"delta_vs_neutral":-10.0},{"name":"Buffett Indicator","contribution":0.08,"delta_vs_neutral":-9.92},{"name":"Shiller CAPE","contribution":0.12,"delta_vs_neutral":-9.88}],"audit_trail":[{"step":"Shiller CAPE","normalised":0.6,"times_weight":"0.6 x 0.20","contribution":0.12,"running_total":0.12},{"step":"Buffett Indicator","normalised":0.4,"times_weight":"0.4 x 0.20","contribution":0.08,"running_total":0.2},{"step":"Earnings Yield","normalised":21.2,"times_weight":"21.2 x 0.20","contribution":4.24,"running_total":4.44},{"step":"Equity Risk Premium","normalised":5.2,"times_weight":"5.2 x 0.20","contribution":1.04,"running_total":5.48},{"step":"Real Yield (10Y TIPS)","normalised":0.0,"times_weight":"0.0 x 0.20","contribution":0.0,"running_total":5.48}]}},"opportunity":{"score":39.5,"label":"Poor Entry","components":{"vix":{"raw":28.440000534057617,"score":47.200002670288086,"weight":0.25,"why":"Absolute VIX level. Below 20 adds little; above 50 receives maximum credit."},"drawdown":{"raw":0.08114599026950375,"score":19.343797080851125,"weight":0.25,"why":"Depth below the all-time high, scored with an accelerating curve."},"above_200dma":{"raw":60.0,"score":40.0,"weight":0.2,"why":"Few stocks above their 200DMA marks broad capitulation."},"below_200dma":{"raw":0.02440959497740769,"score":54.763837990963076,"weight":0.15,"why":"Price location versus trend; deeper below trend scores higher."},"putcall":{"raw":0.02883261882650978,"score":66.53304753060391,"weight":0.1,"why":"VIX9D/VIX term structure as a put-demand proxy; 50 = neutral when unavailable."},"mcclellan":{"raw":-0.003841237335849901,"score":0.006885813255050207,"weight":0.05,"why":"Breadth impulse percentile, squared so only extremes contribute."}},"weights":{"vix":0.25,"drawdown":0.25,"above_200dma":0.2,"below_200dma":0.15,"putcall":0.1,"mcclellan":0.05},"explain":{"final":39.5,"base_score":39.5,"bonus":null,"reconciliation":"No additive bonus; component table sums directly to the final score.","formula":"VIX 25% + Drawdown 25% + Above200DMA 20% + Below200DMA 15% + PutCall 10% + McClellan 5%.","components":[{"name":"Vix","raw":28.440000534057617,"normalised":47.2,"weight":0.25,"contribution":11.8,"delta_vs_neutral":-0.7,"direction":"Higher VIX = more fear = higher opportunity score.","why":"Absolute VIX level. Below 20 adds little; above 50 receives maximum credit."},{"name":"Drawdown","raw":0.08114599026950375,"normalised":19.34,"weight":0.25,"contribution":4.84,"delta_vs_neutral":-7.66,"direction":"Deeper drawdown = higher opportunity score.","why":"Depth below the all-time high, scored with an accelerating curve."},{"name":"Above 200Dma","raw":60.0,"normalised":40.0,"weight":0.2,"contribution":8.0,"delta_vs_neutral":-2.0,"direction":"Fewer stocks above 200DMA = higher opportunity score.","why":"Few stocks above their 200DMA marks broad capitulation."},{"name":"Below 200Dma","raw":0.02440959497740769,"normalised":54.76,"weight":0.15,"contribution":8.21,"delta_vs_neutral":0.71,"direction":"Further below trend = higher opportunity score.","why":"Price location versus trend; deeper below trend scores higher."},{"name":"Putcall","raw":0.02883261882650978,"normalised":66.53,"weight":0.1,"contribution":6.65,"delta_vs_neutral":1.65,"direction":"Higher term-structure inversion = higher opportunity score.","why":"VIX9D/VIX term structure as a put-demand proxy; 50 = neutral when unavailable."},{"name":"Mcclellan","raw":-0.003841237335849901,"normalised":0.01,"weight":0.05,"contribution":0.0,"delta_vs_neutral":-2.5,"direction":"More negative breadth impulse = higher opportunity score.","why":"Breadth impulse percentile, squared so only extremes contribute."}],"top_positive":[{"name":"Vix","contribution":11.8,"delta_vs_neutral":-0.7},{"name":"Below 200Dma","contribution":8.21,"delta_vs_neutral":0.71},{"name":"Above 200Dma","contribution":8.0,"delta_vs_neutral":-2.0}],"top_negative":[{"name":"Mcclellan","contribution":0.0,"delta_vs_neutral":-2.5},{"name":"Drawdown","contribution":4.84,"delta_vs_neutral":-7.66},{"name":"Putcall","contribution":6.65,"delta_vs_neutral":1.65}],"audit_trail":[{"step":"Vix","normalised":47.2,"times_weight":"47.2 x 0.25","contribution":11.8,"running_total":11.8},{"step":"Drawdown","normalised":19.34,"times_weight":"19.34 x 0.25","contribution":4.84,"running_total":16.64},{"step":"Above 200Dma","normalised":40.0,"times_weight":"40.0 x 0.20","contribution":8.0,"running_total":24.64},{"step":"Below 200Dma","normalised":54.76,"times_weight":"54.76 x 0.15","contribution":8.21,"running_total":32.85},{"step":"Putcall","normalised":66.53,"times_weight":"66.53 x 0.10","contribution":6.65,"running_total":39.5},{"step":"Mcclellan","normalised":0.01,"times_weight":"0.01 x 0.05","contribution":0.0,"running_total":39.5}]}},"credit":{"score":74.7,"label":"High","components":{"hy_oas":{"raw":3.47,"normalised":90.0,"weight":0.25,"reliable_history":true,"note":"FRED HY OAS, ~3y history","contribution":22.5},"hyg_lqd":{"raw":0.0109,"normalised":66.1,"weight":0.25,"reliable_history":true,"note":"HYG/LQD 63-day relative stress (full history)","contribution":16.52},"funding_proxy":{"raw":{"irx":4.15,"curve_10y2y":0.27},"normalised":76.4,"weight":0.25,"reliable_history":true,"note":"TED-style: 50% 3M T-bill tightness + 50% curve inversion. Not literal TED (LIBOR series ended 2021).","contribution":19.1},"bond_momentum":{"raw":0.0109,"normalised":66.1,"weight":0.25,"reliable_history":true,"note":"HYG/LQD momentum percentile; negative relative move = stress.","contribution":16.52}},"weights":{"hy_oas":0.25,"hyg_lqd":0.25,"funding_proxy":0.25,"bond_momentum":0.25},"note":"Independent layer. Not hidden inside the panic detector."},"internals":{"score":54.7,"label":"No hidden weakness","hidden_weakness":false,"components":{"advance_decline":{"raw":30.8,"unit":"% advancing (21d)","normalised":69.2,"weight":0.25,"note":"Share of 13-ETF universe with positive 21-day return.","contribution":17.3},"new_high_low":{"raw":0.0,"unit":"highs - lows (%)","normalised":50.0,"weight":0.25,"note":"Share near 252d highs minus share near 252d lows.","contribution":12.5},"equal_cap":{"raw":3.53,"unit":"% vs 200d mean","normalised":41.2,"weight":0.25,"note":"RSP/SPY relative to its 200-day mean; negative = narrow leadership.","contribution":10.3},"small_rs":{"raw":-3.33,"unit":"% vs 200d mean","normalised":58.3,"weight":0.25,"note":"IWM/SPY relative to its 200-day mean; negative = defensive leadership.","contribution":14.57}},"weights":{"advance_decline":0.25,"new_high_low":0.25,"equal_cap":0.25,"small_rs":0.25},"note":"Not part of the Buying Score; a separate diagnostic of market internals."},"risk":{"meter":"Moderate","opportunity_score":70.0,"p10_3m":23.1,"p20_12m":24.7,"sub_signals":[{"name":"3M -10% drawdown","level":"Low"},{"name":"12M -20% drawdown","level":"Moderate"},{"name":"Recession pressure","level":"Low"},{"name":"Credit stress","level":"Moderate"},{"name":"Liquidity stress","level":"Moderate"}]},"instruments":{"VOO":{"score":38.5,"base_score":35.4,"drawdown_bonus":3.1,"unbounded_score":38.5,"label":"Expensive","guidance":"Normal DCA only.","drawdown_pct":8.11,"detector":{"state":"NO","n_conditions":1,"checks":{"VIX \u003e 35":false,"Drawdown \u003e 20%":false,"% Above 200DMA \u003c 20%":false,"Credit Stress Elevated":false,"Fear \u0026 Greed \u003c 25":true},"rule":"\u003e=3 simultaneous conditions = YES; exactly 2 = WATCHLIST; otherwise NO."},"deployment":{"percent":0,"label":"Pause lump sum","note":"Pause lump-sum buying; continue scheduled DCA.","band":[0,20]},"explain":{"final":38.5,"base_score":35.4,"bonus":3.1,"reconciliation":"Base 35.4 (component table below) + drawdown bonus 3.1 = final 38.5 (capped 0-100)","formula":"Base = 30% Valuation + 50% Opportunity + 20% Risk Modifier; then + drawdown bonus, capped at 100.","components":[{"name":"Vix","raw":28.440000534057617,"normalised":47.2,"weight":0.125,"contribution":5.9,"delta_vs_neutral":-0.35,"direction":"Higher VIX = more fear = higher opportunity score.","why":"Absolute VIX level. Below 20 adds little; above 50 receives maximum credit."},{"name":"Drawdown","raw":0.08114599026950375,"normalised":19.34,"weight":0.125,"contribution":2.42,"delta_vs_neutral":-3.83,"direction":"Deeper drawdown = higher opportunity score.","why":"Depth below the all-time high, scored with an accelerating curve."},{"name":"Above 200Dma","raw":60.0,"normalised":40.0,"weight":0.1,"contribution":4.0,"delta_vs_neutral":-1.0,"direction":"Fewer stocks above 200DMA = higher opportunity score.","why":"Few stocks above their 200DMA marks broad capitulation."},{"name":"Below 200Dma","raw":0.02440959497740769,"normalised":54.76,"weight":0.075,"contribution":4.11,"delta_vs_neutral":0.36,"direction":"Further below trend = higher opportunity score.","why":"Price location versus trend; deeper below trend scores higher."},{"name":"Putcall","raw":0.02883261882650978,"normalised":66.53,"weight":0.05,"contribution":3.33,"delta_vs_neutral":0.83,"direction":"Higher term-structure inversion = higher opportunity score.","why":"VIX9D/VIX term structure as a put-demand proxy; 50 = neutral when unavailable."},{"name":"Mcclellan","raw":-0.003841237335849901,"normalised":0.01,"weight":0.025,"contribution":0.0,"delta_vs_neutral":-1.25,"direction":"More negative breadth impulse = higher opportunity score.","why":"Breadth impulse percentile, squared so only extremes contribute."},{"name":"Shiller CAPE","raw":41.0,"normalised":0.6,"weight":0.06,"contribution":0.04,"delta_vs_neutral":-2.96,"direction":"Lower = cheaper","why":"Valuation percentile 3.4 of history known at this date."},{"name":"Buffett Indicator","raw":2.213,"normalised":0.4,"weight":0.06,"contribution":0.02,"delta_vs_neutral":-2.98,"direction":"Lower = cheaper","why":"Valuation percentile 2.7 of history known at this date."},{"name":"Earnings Yield","raw":3.96,"normalised":21.2,"weight":0.06,"contribution":1.27,"delta_vs_neutral":-1.73,"direction":"Higher = cheaper","why":"Valuation percentile 35.6 of history known at this date."},{"name":"Equity Risk Premium","raw":-1.092,"normalised":5.2,"weight":0.06,"contribution":0.31,"delta_vs_neutral":-2.69,"direction":"Higher = cheaper","why":"Valuation percentile 13.9 of history known at this date."},{"name":"Real Yield (10Y TIPS)","raw":2.88,"normalised":0.0,"weight":0.06,"contribution":0.0,"delta_vs_neutral":-3.0,"direction":"Lower = cheaper","why":"Valuation percentile 0.5 of history known at this date."},{"name":"Risk Modifier","raw":"Moderate","normalised":70.0,"weight":0.2,"contribution":14.0,"delta_vs_neutral":4.0,"direction":"Lower risk = higher score","why":"Worst-of five drawdown/macro stress sub-signals."}],"top_positive":[{"name":"Risk Modifier","contribution":14.0,"delta_vs_neutral":4.0},{"name":"Vix","contribution":5.9,"delta_vs_neutral":-0.35},{"name":"Below 200Dma","contribution":4.11,"delta_vs_neutral":0.36}],"top_negative":[{"name":"Mcclellan","contribution":0.0,"delta_vs_neutral":-1.25},{"name":"Real Yield (10Y TIPS)","contribution":0.0,"delta_vs_neutral":-3.0},{"name":"Buffett Indicator","contribution":0.02,"delta_vs_neutral":-2.98}],"audit_trail":[{"step":"Vix","normalised":47.2,"times_weight":"47.2 x 0.12","contribution":5.9,"running_total":5.9},{"step":"Drawdown","normalised":19.34,"times_weight":"19.34 x 0.12","contribution":2.42,"running_total":8.32},{"step":"Above 200Dma","normalised":40.0,"times_weight":"40.0 x 0.10","contribution":4.0,"running_total":12.32},{"step":"Below 200Dma","normalised":54.76,"times_weight":"54.76 x 0.07","contribution":4.11,"running_total":16.43},{"step":"Putcall","normalised":66.53,"times_weight":"66.53 x 0.05","contribution":3.33,"running_total":19.76},{"step":"Mcclellan","normalised":0.01,"times_weight":"0.01 x 0.03","contribution":0.0,"running_total":19.76},{"step":"Shiller CAPE","normalised":0.6,"times_weight":"0.6 x 0.06","contribution":0.04,"running_total":19.8},{"step":"Buffett Indicator","normalised":0.4,"times_weight":"0.4 x 0.06","contribution":0.02,"running_total":19.82},{"step":"Earnings Yield","normalised":21.2,"times_weight":"21.2 x 0.06","contribution":1.27,"running_total":21.09},{"step":"Equity Risk Premium","normalised":5.2,"times_weight":"5.2 x 0.06","contribution":0.31,"running_total":21.4},{"step":"Real Yield (10Y TIPS)","normalised":0.0,"times_weight":"0.0 x 0.06","contribution":0.0,"running_total":21.4},{"step":"Risk Modifier","normalised":70.0,"times_weight":"70.0 x 0.20","contribution":14.0,"running_total":35.4}]},"audit":[{"step":"Valuation Score","value":5.5,"operation":"x 30%","result":1.6},{"step":"Opportunity Score","value":39.5,"operation":"x 50%","result":19.8},{"step":"Risk Modifier","value":70.0,"operation":"x 20%","result":14.0},{"step":"Drawdown Bonus","value":3.1,"operation":"+ bonus","result":3.1},{"step":"FINAL SCORE","value":"","operation":"sum (capped 0-100)","result":38.5}],"opportunity_cost":{"current_score":38.5,"current_drawdown_pct":8.11,"scenarios":[{"correction_pct":5,"status":"already reached — no additional wait","score_at_scenario":38.5,"score_improvement":0.0,"bonus_at_scenario":3.1,"historical_freq_pct":57.8,"n_first_crossings":19,"median_next_12m_pct":12.9},{"correction_pct":10,"status":"wait required","score_at_scenario":41.7,"score_improvement":3.2,"bonus_at_scenario":5.0,"historical_freq_pct":43.1,"n_first_crossings":14,"median_next_12m_pct":13.8},{"correction_pct":15,"status":"wait required","score_at_scenario":50.5,"score_improvement":12.0,"bonus_at_scenario":10.0,"historical_freq_pct":33.8,"n_first_crossings":12,"median_next_12m_pct":14.5}],"note":"Holding all other conditions constant. Historical frequency and forward outcomes are descriptive only; waiting can also mean never buying."}},"QQQ":{"score":45.5,"base_score":35.4,"drawdown_bonus":10.1,"unbounded_score":45.5,"label":"Neutral","guidance":"Normal DCA.","drawdown_pct":15.09,"detector":{"state":"NO","n_conditions":1,"checks":{"VIX \u003e 35":false,"Drawdown \u003e 20%":false,"% Above 200DMA \u003c 20%":false,"Credit Stress Elevated":false,"Fear \u0026 Greed \u003c 25":true},"rule":"\u003e=3 simultaneous conditions = YES; exactly 2 = WATCHLIST; otherwise NO."},"deployment":{"percent":25,"label":"Small accumulation","note":"Deploy a small first tranche; keep most cash available.","band":[40,60]},"explain":{"final":45.5,"base_score":35.4,"bonus":10.1,"reconciliation":"Base 35.4 (component table below) + drawdown bonus 10.1 = final 45.5 (capped 0-100)","formula":"Base = 30% Valuation + 50% Opportunity + 20% Risk Modifier; then + drawdown bonus, capped at 100.","components":[{"name":"Vix","raw":28.440000534057617,"normalised":47.2,"weight":0.125,"contribution":5.9,"delta_vs_neutral":-0.35,"direction":"Higher VIX = more fear = higher opportunity score.","why":"Absolute VIX level. Below 20 adds little; above 50 receives maximum credit."},{"name":"Drawdown","raw":0.08114599026950375,"normalised":19.34,"weight":0.125,"contribution":2.42,"delta_vs_neutral":-3.83,"direction":"Deeper drawdown = higher opportunity score.","why":"Depth below the all-time high, scored with an accelerating curve."},{"name":"Above 200Dma","raw":60.0,"normalised":40.0,"weight":0.1,"contribution":4.0,"delta_vs_neutral":-1.0,"direction":"Fewer stocks above 200DMA = higher opportunity score.","why":"Few stocks above their 200DMA marks broad capitulation."},{"name":"Below 200Dma","raw":0.02440959497740769,"normalised":54.76,"weight":0.075,"contribution":4.11,"delta_vs_neutral":0.36,"direction":"Further below trend = higher opportunity score.","why":"Price location versus trend; deeper below trend scores higher."},{"name":"Putcall","raw":0.02883261882650978,"normalised":66.53,"weight":0.05,"contribution":3.33,"delta_vs_neutral":0.83,"direction":"Higher term-structure inversion = higher opportunity score.","why":"VIX9D/VIX term structure as a put-demand proxy; 50 = neutral when unavailable."},{"name":"Mcclellan","raw":-0.003841237335849901,"normalised":0.01,"weight":0.025,"contribution":0.0,"delta_vs_neutral":-1.25,"direction":"More negative breadth impulse = higher opportunity score.","why":"Breadth impulse percentile, squared so only extremes contribute."},{"name":"Shiller CAPE","raw":41.0,"normalised":0.6,"weight":0.06,"contribution":0.04,"delta_vs_neutral":-2.96,"direction":"Lower = cheaper","why":"Valuation percentile 3.4 of history known at this date."},{"name":"Buffett Indicator","raw":2.213,"normalised":0.4,"weight":0.06,"contribution":0.02,"delta_vs_neutral":-2.98,"direction":"Lower = cheaper","why":"Valuation percentile 2.7 of history known at this date."},{"name":"Earnings Yield","raw":3.96,"normalised":21.2,"weight":0.06,"contribution":1.27,"delta_vs_neutral":-1.73,"direction":"Higher = cheaper","why":"Valuation percentile 35.6 of history known at this date."},{"name":"Equity Risk Premium","raw":-1.092,"normalised":5.2,"weight":0.06,"contribution":0.31,"delta_vs_neutral":-2.69,"direction":"Higher = cheaper","why":"Valuation percentile 13.9 of history known at this date."},{"name":"Real Yield (10Y TIPS)","raw":2.88,"normalised":0.0,"weight":0.06,"contribution":0.0,"delta_vs_neutral":-3.0,"direction":"Lower = cheaper","why":"Valuation percentile 0.5 of history known at this date."},{"name":"Risk Modifier","raw":"Moderate","normalised":70.0,"weight":0.2,"contribution":14.0,"delta_vs_neutral":4.0,"direction":"Lower risk = higher score","why":"Worst-of five drawdown/macro stress sub-signals."}],"top_positive":[{"name":"Risk Modifier","contribution":14.0,"delta_vs_neutral":4.0},{"name":"Vix","contribution":5.9,"delta_vs_neutral":-0.35},{"name":"Below 200Dma","contribution":4.11,"delta_vs_neutral":0.36}],"top_negative":[{"name":"Mcclellan","contribution":0.0,"delta_vs_neutral":-1.25},{"name":"Real Yield (10Y TIPS)","contribution":0.0,"delta_vs_neutral":-3.0},{"name":"Buffett Indicator","contribution":0.02,"delta_vs_neutral":-2.98}],"audit_trail":[{"step":"Vix","normalised":47.2,"times_weight":"47.2 x 0.12","contribution":5.9,"running_total":5.9},{"step":"Drawdown","normalised":19.34,"times_weight":"19.34 x 0.12","contribution":2.42,"running_total":8.32},{"step":"Above 200Dma","normalised":40.0,"times_weight":"40.0 x 0.10","contribution":4.0,"running_total":12.32},{"step":"Below 200Dma","normalised":54.76,"times_weight":"54.76 x 0.07","contribution":4.11,"running_total":16.43},{"step":"Putcall","normalised":66.53,"times_weight":"66.53 x 0.05","contribution":3.33,"running_total":19.76},{"step":"Mcclellan","normalised":0.01,"times_weight":"0.01 x 0.03","contribution":0.0,"running_total":19.76},{"step":"Shiller CAPE","normalised":0.6,"times_weight":"0.6 x 0.06","contribution":0.04,"running_total":19.8},{"step":"Buffett Indicator","normalised":0.4,"times_weight":"0.4 x 0.06","contribution":0.02,"running_total":19.82},{"step":"Earnings Yield","normalised":21.2,"times_weight":"21.2 x 0.06","contribution":1.27,"running_total":21.09},{"step":"Equity Risk Premium","normalised":5.2,"times_weight":"5.2 x 0.06","contribution":0.31,"running_total":21.4},{"step":"Real Yield (10Y TIPS)","normalised":0.0,"times_weight":"0.0 x 0.06","contribution":0.0,"running_total":21.4},{"step":"Risk Modifier","normalised":70.0,"times_weight":"70.0 x 0.20","contribution":14.0,"running_total":35.4}]},"audit":[{"step":"Valuation Score","value":5.5,"operation":"x 30%","result":1.6},{"step":"Opportunity Score","value":39.5,"operation":"x 50%","result":19.8},{"step":"Risk Modifier","value":70.0,"operation":"x 20%","result":14.0},{"step":"Drawdown Bonus","value":10.1,"operation":"+ bonus","result":10.1},{"step":"FINAL SCORE","value":"","operation":"sum (capped 0-100)","result":45.5}],"opportunity_cost":null}},"sensitivity":[{"scenario":"VIX rises to 35","score":42.0,"change":3.5,"deployment_pct":25,"label":"Neutral"},{"scenario":"Drawdown reaches 10%","score":41.1,"change":2.6,"deployment_pct":25,"label":"Neutral"},{"scenario":"Drawdown reaches 20%","score":61.1,"change":22.6,"deployment_pct":50,"label":"Attractive"},{"scenario":"VIX \u003e 35 AND Drawdown \u003e 20%","score":64.6,"change":26.1,"deployment_pct":50,"label":"Attractive"}],"formula_disclosure":{"vix":{"definition":"CBOE Volatility Index (30-day implied volatility on S\u0026P 500).","formula":"knot_score(VIX, VIX_KNOTS); VIX_KNOTS = [(0,0),(15,5),(20,15),(25,30),(30,55),(35,75),(40,88),(45,95),(50,100)]","reason":"Extreme fear historically accompanies major buying opportunities; the curve rewards extremes disproportionately.","direction":"Higher VIX = more fear = higher opportunity score.","example":"VIX 30 -\u003e 55 points; VIX 45 -\u003e 95 points."},"drawdown":{"definition":"Percentage decline of price from its all-time high.","formula":"dd = 1 - price / running_max(price); knot_score(dd, DD_KNOTS)","reason":"Deeper drawdowns improve entry location and create room for recovery.","direction":"Deeper drawdown = higher opportunity score.","example":"5% drawdown -\u003e 10 points; 25% -\u003e 78 points."},"above_200dma":{"definition":"Share of the 10-ETF universe trading above its 200-day moving average.","formula":"above% = 100*(1 - pct_above_200dma_neg); knot_score(above, ABOVE_KNOTS)","reason":"Few names above trend marks broad capitulation rather than a narrow selloff.","direction":"Fewer stocks above 200DMA = higher opportunity score.","example":"60% above -\u003e 40 points; 20% above -\u003e 85 points."},"below_200dma":{"definition":"How far the index sits below its 200-day moving average.","formula":"knot_score(-(price/MA200 - 1), BELOW_KNOTS)","reason":"Price location versus trend captures how washed out the market is.","direction":"Further below trend = higher opportunity score.","example":"-1% -\u003e ~41 points; -10% -\u003e 82 points."},"putcall":{"definition":"Put/Call fear proxy from the VIX term structure (VIX9D/VIX - 1).","formula":"knot_score(VIX9D/VIX - 1, PUTCALL_KNOTS); neutral 50 before 2011.","reason":"9-day vol above 30-day vol signals urgent demand for protection.","direction":"Higher term-structure inversion = higher opportunity score.","example":"0.05 inversion -\u003e 75 points."},"mcclellan":{"definition":"Breadth impulse proxy: RSP/SPY 19-day EMA minus 39-day EMA (inverted).","formula":"mc = 100 * (expanding_pct(-(EMA19-EMA39)))^2","reason":"Squared percentile so only genuine breadth extremes contribute.","direction":"More negative breadth impulse = higher opportunity score.","example":"90th percentile of negativity -\u003e 81 points."}},"analogues":[{"episode":"2018 Q4 Selloff","date":"2018-12-24","similarity":74.3,"terms":{"vix":90.5,"dd":78.1,"above":40.0,"below":69.3,"valuation":94.7,"credit":73.6},"features":{"vix":36.07,"dd":0.2,"above":0.0,"below":0.15,"valuation":91.23,"credit":92.54}},{"episode":"2022 Bear Market","date":"2022-10-12","similarity":65.7,"terms":{"vix":93.6,"dd":68.6,"above":50.0,"below":71.4,"valuation":72.7,"credit":38.1},"features":{"vix":33.57,"dd":0.25,"above":10.0,"below":0.14,"valuation":69.27,"credit":4.24}},{"episode":"2011 Euro Crisis","date":"2011-10-03","similarity":59.5,"terms":{"vix":78.7,"dd":60.7,"above":50.0,"below":70.4,"valuation":26.7,"credit":70.6},"features":{"vix":45.45,"dd":0.3,"above":10.0,"below":0.14,"valuation":23.32,"credit":95.48}},{"episode":"2020 COVID","date":"2020-03-23","similarity":57.7,"terms":{"vix":58.6,"dd":52.7,"above":40.0,"below":39.3,"valuation":88.1,"credit":67.6},"features":{"vix":61.59,"dd":0.34,"above":0.0,"below":0.27,"valuation":84.7,"credit":98.52}},{"episode":"2008 GFC","date":"2008-11-20","similarity":29.2,"terms":{"vix":34.5,"dd":20.6,"above":40.0,"below":7.4,"valuation":6.7,"credit":66.1},"features":{"vix":80.86,"dd":0.52,"above":0.0,"below":0.4,"valuation":3.32,"credit":100.0}}],"historical_validation":[{"date":"2008-10-27","detector":"YES","n_conditions":5},{"date":"2008-11-20","detector":"YES","n_conditions":5},{"date":"2009-03-09","detector":"YES","n_conditions":4},{"date":"2011-10-03","detector":"YES","n_conditions":5},{"date":"2018-12-24","detector":"YES","n_conditions":5},{"date":"2020-03-23","detector":"YES","n_conditions":5},{"date":"2022-06-16","detector":"YES","n_conditions":3},{"date":"2022-10-12","detector":"YES","n_conditions":3}],"fear_greed":{"index":23.5,"convention":"0 = extreme fear (CNN scale)","source":"constructed seven-component PIT series; display only, zero weight"},"disclosures":["Four concepts are reported separately; no single score is claimed to explain everything.","Knots, bands and weights are pre-registered and disclosed; none were fitted to returns.","Credit Stress is independent; HY OAS has ~3y history and falls back to HYG/LQD with disclosure.","TED spread is a disclosed proxy (3M bill + curve inversion); literal LIBOR TED ended in 2021.","Market Internals are a separate diagnostic and are not added into the Buying Score.","Opportunity-cost scenarios hold other conditions constant and are descriptive, not a forecast.","Every score ships with contributions, top positives/negatives, sensitivity and a manual audit trail."],"data_quality":{"macro_sources":{"DFII10":{"n":5974,"last":"2026-11-18","lag_days":1},"BAMLH0A0HYM2":{"n":786,"last":"2026-11-18","lag_days":1},"T10Y2Y":{"n":12614,"last":"2026-11-19","lag_days":1},"FNG":{"n":252,"last":"2026-11-20","lag_days":0}}},"ops":{"status":{"last_run":"2026-11-20T09:05:06Z","mode":"live refresh","status":"OK","as_of":"2026-11-19","refresh_status":"OK","sources_updated":40,"sources_failed":0},"percentiles":{"VOO":41.7,"QQQ":37.4},"rules":[{"name":"VOO \u003e= 80","trigger":"VOO or QQQ crosses 80 from below","current":"38.5","state":"NO","last_fired":null},{"name":"QQQ \u003e= 80","trigger":"QQQ crosses 80 from below","current":"45.5","state":"NO","last_fired":null},{"name":"Rare detector","trigger":"Rare Opportunity Detector transitions into YES","current":"NO","state":"NO","last_fired":null},{"name":"Regime change","trigger":"Market Regime label changes (any change; PANIC is urgent)","current":"CORRECTION","state":"OK","last_fired":null},{"name":"Weekly summary","trigger":"First run of each ISO week","current":"2026-W47","state":"OK","last_fired":"2026-11-19T14:47:53Z"}],"recent_alerts":[{"time":"2026-11-19T14:47:53Z","type":"weekly_summary","priority":"normal","detail":"Weekly summary for 2026-W47","delivery":"dry-run","reason":"explicit dry-run","subject":"[ETF Entry] WEEKLY SUMMARY — VOO 27.4 | CORRECTION | 2026-11-16"}],"score_history":[{"date":"2021-11-30","source":"backfill","voo":39.56,"qqq":40.82,"valuation":33.78,"opportunity":30.85,"risk_meter":"Moderate","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2021-12-31","source":"backfill","voo":33.66,"qqq":34.42,"valuation":34.72,"opportunity":10.49,"risk_meter":"Low","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2022-01-31","source":"backfill","voo":38.81,"qqq":43.13,"valuation":32.06,"opportunity":28.75,"risk_meter":"Moderate","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2022-02-28","source":"backfill","voo":50.61,"qqq":56.16,"valuation":30.94,"opportunity":47.45,"risk_meter":"Moderate","detector":"NO","regime":null,"deployment_pct":25,"pct_voo":null,"pct_qqq":null},{"date":"2022-03-31","source":"backfill","voo":34.93,"qqq":39.73,"valuation":29.88,"opportunity":23.02,"risk_meter":"Moderate","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2022-05-31","source":"backfill","voo":51.06,"qqq":63.03,"valuation":28.98,"opportunity":49.61,"risk_meter":"High","detector":"NO","regime":null,"deployment_pct":25,"pct_voo":null,"pct_qqq":null},{"date":"2022-06-30","source":"backfill","voo":69.81,"qqq":79.51,"valuation":23.0,"opportunity":64.74,"risk_meter":"High","detector":"WATCHLIST","regime":null,"deployment_pct":50,"pct_voo":null,"pct_qqq":null},{"date":"2022-08-31","source":"backfill","voo":58.97,"qqq":68.3,"valuation":27.82,"opportunity":54.15,"risk_meter":"High","detector":"NO","regime":null,"deployment_pct":25,"pct_voo":null,"pct_qqq":null},{"date":"2022-09-30","source":"backfill","voo":81.21,"qqq":91.06,"valuation":23.38,"opportunity":74.71,"risk_meter":"High","detector":"YES","regime":null,"deployment_pct":75,"pct_voo":null,"pct_qqq":null},{"date":"2022-10-31","source":"backfill","voo":59.86,"qqq":73.95,"valuation":21.0,"opportunity":60.51,"risk_meter":"Extreme","detector":"NO","regime":null,"deployment_pct":25,"pct_voo":null,"pct_qqq":null},{"date":"2022-11-30","source":"backfill","voo":33.79,"qqq":50.21,"valuation":17.94,"opportunity":27.5,"risk_meter":"Extreme","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2023-01-31","source":"backfill","voo":37.92,"qqq":53.62,"valuation":26.88,"opportunity":29.89,"risk_meter":"Extreme","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2023-02-28","source":"backfill","voo":42.91,"qqq":54.81,"valuation":18.56,"opportunity":36.48,"risk_meter":"Extreme","detector":"NO","regime":null,"deployment_pct":25,"pct_voo":null,"pct_qqq":null},{"date":"2023-03-31","source":"backfill","voo":36.49,"qqq":43.03,"valuation":19.84,"opportunity":32.47,"risk_meter":"Extreme","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2023-05-31","source":"backfill","voo":37.13,"qqq":38.46,"valuation":15.94,"opportunity":39.63,"risk_meter":"Extreme","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2023-06-30","source":"backfill","voo":20.27,"qqq":22.34,"valuation":16.62,"opportunity":16.14,"risk_meter":"Extreme","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2023-07-31","source":"backfill","voo":15.07,"qqq":17.59,"valuation":15.36,"opportunity":10.93,"risk_meter":"Extreme","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2023-08-31","source":"backfill","voo":17.81,"qqq":20.3,"valuation":13.82,"opportunity":15.86,"risk_meter":"Extreme","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2023-10-31","source":"backfill","voo":38.79,"qqq":39.49,"valuation":7.58,"opportunity":48.13,"risk_meter":"Extreme","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2023-11-30","source":"backfill","voo":17.67,"qqq":19.54,"valuation":9.74,"opportunity":19.49,"risk_meter":"Extreme","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2024-01-31","source":"backfill","voo":18.71,"qqq":20.01,"valuation":15.36,"opportunity":18.2,"risk_meter":"Extreme","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2024-02-29","source":"backfill","voo":13.83,"qqq":13.83,"valuation":11.34,"opportunity":10.85,"risk_meter":"Extreme","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2024-04-30","source":"backfill","voo":19.08,"qqq":21.52,"valuation":6.68,"opportunity":16.16,"risk_meter":"High","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2024-05-31","source":"backfill","voo":15.59,"qqq":16.56,"valuation":6.28,"opportunity":9.41,"risk_meter":"High","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2024-07-31","source":"backfill","voo":12.91,"qqq":16.08,"valuation":7.78,"opportunity":11.16,"risk_meter":"Extreme","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2024-09-30","source":"backfill","voo":17.41,"qqq":18.89,"valuation":8.7,"opportunity":11.61,"risk_meter":"High","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2024-10-31","source":"backfill","voo":23.72,"qqq":25.62,"valuation":5.26,"opportunity":26.29,"risk_meter":"High","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2024-12-31","source":"backfill","voo":20.12,"qqq":22.62,"valuation":3.9,"opportunity":19.89,"risk_meter":"High","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2025-01-31","source":"backfill","voo":19.22,"qqq":20.7,"valuation":3.94,"opportunity":18.08,"risk_meter":"High","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2025-02-28","source":"backfill","voo":19.78,"qqq":22.68,"valuation":5.12,"opportunity":18.48,"risk_meter":"High","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2025-03-31","source":"backfill","voo":34.87,"qqq":39.22,"valuation":5.52,"opportunity":40.96,"risk_meter":"High","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2025-04-30","source":"backfill","voo":37.35,"qqq":39.69,"valuation":5.98,"opportunity":44.05,"risk_meter":"High","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2025-06-30","source":"backfill","voo":18.68,"qqq":18.68,"valuation":7.98,"opportunity":14.57,"risk_meter":"High","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2025-07-31","source":"backfill","voo":25.57,"qqq":25.85,"valuation":9.58,"opportunity":17.4,"risk_meter":"Moderate","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2025-09-30","source":"backfill","voo":21.81,"qqq":21.96,"valuation":8.12,"opportunity":10.74,"risk_meter":"Moderate","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2025-10-31","source":"backfill","voo":21.82,"qqq":22.35,"valuation":7.2,"opportunity":11.32,"risk_meter":"Moderate","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2025-12-31","source":"backfill","voo":19.63,"qqq":21.31,"valuation":5.86,"opportunity":7.74,"risk_meter":"Moderate","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2026-03-31","source":"backfill","voo":31.33,"qqq":34.44,"valuation":4.46,"opportunity":29.0,"risk_meter":"Moderate","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2026-04-30","source":"backfill","voo":22.93,"qqq":22.93,"valuation":5.32,"opportunity":14.66,"risk_meter":"Moderate","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2026-06-30","source":"backfill","voo":20.48,"qqq":21.13,"valuation":7.7,"opportunity":8.34,"risk_meter":"Moderate","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2026-07-31","source":"backfill","voo":20.92,"qqq":24.82,"valuation":5.8,"opportunity":10.36,"risk_meter":"Moderate","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2026-08-31","source":"backfill","voo":24.45,"qqq":26.42,"valuation":5.32,"opportunity":9.71,"risk_meter":"Low","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2026-09-30","source":"backfill","voo":27.0,"qqq":27.51,"valuation":5.22,"opportunity":22.87,"risk_meter":"Moderate","detector":"NO","regime":null,"deployment_pct":0,"pct_voo":null,"pct_qqq":null},{"date":"2026-11-16","source":"live","voo":27.4,"qqq":35.2,"valuation":6.3,"opportunity":22.9,"risk_meter":"Moderate","detector":"NO","regime":"CORRECTION","deployment_pct":0,"pct_voo":12.6,"pct_qqq":25.7},{"date":"2026-11-19","source":"live","voo":38.5,"qqq":45.5,"valuation":5.5,"opportunity":39.5,"risk_meter":"Moderate","detector":"NO","regime":"CORRECTION","deployment_pct":0,"pct_voo":41.7,"pct_qqq":37.4}],"weekly_summary":{"week":"2026-W47","text":"Week 2026-W47: VOO 38.5/100 (41.7th percentile), QQQ 45.5/100 (37.4th). Regime CORRECTION, detector NO, deployment 0%. 0 alert(s) generated this run."},"email_config":{"configured":false,"mode":"dry-run"},"email_preview":{"subject":"[ETF Entry] WEEKLY SUMMARY — VOO 27.4 | CORRECTION | 2026-11-16","latest_type":"weekly_summary","date":"2026-11-19","scores":"38.5 / 45.5","percentile":"41.7 / 37.4","regime":"CORRECTION","deployment":"0%","fields":{"Date":"2026-11-16","Current VOO Score":"27.4/100 (Expensive)","Current QQQ Score":"35.2/100 (Expensive)","Historical Percentile":"VOO 12.6th / QQQ 25.7th (month-end entry dates since 2000)","Top Positive Contributors":"Risk Modifier (+14.0); Above 200Dma (+4.0); Below 200Dma (+3.1)","Top Negative Contributors":"Mcclellan (-1.2); Real Yield (10Y TIPS) (-3.0); Buffett Indicator (-3.0)","Current Regime":"CORRECTION (High confidence)","Historical Analogues":"2018 Q4 Selloff 68%; 2022 Bear Market 64%; 2011 Euro Crisis 54%; 2020 COVID 52%; 2008 GFC 24%","Deployment Recommendation":"0% — Pause lump sum"}},"setup":{"command":"python pipeline/ops_daily.py","notes":["Run once per day, after US market close. A repeat run on the same day is safe.","Emails are sent only when VOO/QQQ cross 80, the regime changes, the rare detector turns YES, or for one weekly summary.","Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM and ALERT_TO to enable delivery; otherwise messages are archived in data/ops/outbox/ as dry-run.","For STARTTLS on port 587 also set SMTP_STARTTLS=1. Credentials are read from environment variables only and are never written into the dashboard.","Windows scheduler: powershell -ExecutionPolicy Bypass -File pipeline/register_daily_task.ps1","Point-in-time safety: macro data is aligned by first-known date; expanding percentiles and risk probabilities use only prior observations."]},"history_meta":{"backfill_rows":230,"live_rows":2,"first_backfill":"2000-01-31"}},"data_audit":{"as_of":"2026-11-19","generated_at":"2026-11-20T09:05:06Z","summary":{"n_sources":23,"n_proxies":9,"max_staleness_days":171,"n_fabricated":0,"scored_inputs":12},"sources":[{"name":"SPY close","series":"SPY","source":"Yahoo Finance chart API (SPY)","kind":"REAL","coverage":"1999-now","last_obs":"2026-11-19","lag_days":0,"effective_known_date":"2026-11-19","staleness_days":0,"vintage":"as-published daily close","role":"Drawdown, 200DMA distance, trend, breadth base","n":0},{"name":"QQQ close","series":"QQQ","source":"Yahoo Finance chart API (QQQ)","kind":"REAL","coverage":"1999-now","last_obs":"2026-11-19","lag_days":0,"effective_known_date":"2026-11-19","staleness_days":0,"vintage":"as-published daily close","role":"QQQ drawdown bonus","n":0},{"name":"VIX","series":"VIX","source":"CBOE ^VIX via Yahoo chart API","kind":"REAL","coverage":"1999-now","last_obs":"2026-11-20","lag_days":0,"effective_known_date":"2026-11-19 (cutoff; later row excluded)","staleness_days":0,"vintage":"as-published daily close. latest row 2026-11-20 is 1d after as-of and is excluded","role":"VIX nonlinear score, regime, detector","n":0},{"name":"VIX9D","series":"VIX9D","source":"CBOE ^VIX9D via Yahoo chart API","kind":"PROXY","coverage":"1999-now","last_obs":"2026-11-19","lag_days":0,"effective_known_date":"2026-11-19","staleness_days":0,"vintage":"as-published daily close. Not options tape","role":"Put/call fear proxy (VIX term structure)","n":0},{"name":"RSP","series":"RSP","source":"Yahoo chart API (RSP)","kind":"PROXY","coverage":"1999-now","last_obs":"2026-11-19","lag_days":0,"effective_known_date":"2026-11-19","staleness_days":0,"vintage":"as-published daily close. Not NYSE advance/decline","role":"McClellan, breadth thrust, equal vs cap weight","n":0},{"name":"IWM","series":"IWM","source":"Yahoo chart API (IWM)","kind":"PROXY","coverage":"1999-now","last_obs":"2026-11-19","lag_days":0,"effective_known_date":"2026-11-19","staleness_days":0,"vintage":"as-published daily close","role":"Small-cap relative strength; breadth universe","n":0},{"name":"9 sector SPDRs","series":"XLK","source":"Yahoo chart API (XLB..XLY)","kind":"PROXY","coverage":"1999-now","last_obs":"2026-11-19","lag_days":0,"effective_known_date":"2026-11-19","staleness_days":0,"vintage":"as-published daily close. 10-ETF breadth universe, not all stocks","role":"% above 200DMA, advance/decline proxy","n":0},{"name":"HYG / LQD","series":"HYG","source":"Yahoo chart API (HYG, LQD)","kind":"PROXY","coverage":"1999-now","last_obs":"2026-11-19","lag_days":0,"effective_known_date":"2026-11-19","staleness_days":0,"vintage":"as-published daily close","role":"Credit stress price proxy; corporate bond momentum","n":0},{"name":"TNX / IRX / FVX","series":"TNX","source":"CBOE yield indices via Yahoo","kind":"PROXY","coverage":"1999-now","last_obs":"2026-11-19","lag_days":0,"effective_known_date":"2026-11-19","staleness_days":0,"vintage":"as-published daily close. Literal LIBOR TED ended in 2021","role":"Equity risk premium, TED-style funding proxy","n":0},{"name":"CAPE","series":"CAPE","source":"multpl.com Shiller CAPE monthly table","kind":"REAL","coverage":"1871-02..2026-11","last_obs":"2026-11-01","lag_days":95,"effective_known_date":"2026-11-04","staleness_days":110,"vintage":"LATEST REVISED (not real-time). Latest revised vintage, 95-day lag","role":"Valuation layer","n":1870},{"name":"Earnings Yield","series":"EARNINGS_YIELD","source":"multpl.com S\u0026P 500 earnings yield","kind":"REAL","coverage":"1871-01..2026-06","last_obs":"2026-06-01","lag_days":95,"effective_known_date":"2026-09-04","staleness_days":171,"vintage":"LATEST REVISED (not real-time). Trailing, not forward","role":"Valuation layer + equity risk premium","n":1866},{"name":"Dividend Yield","series":"DIVIDEND_YIELD","source":"multpl.com S\u0026P 500 dividend yield","kind":"REAL","coverage":"1871-01..2026-06","last_obs":"2026-06-30","lag_days":95,"effective_known_date":"2026-10-03","staleness_days":142,"vintage":"LATEST REVISED (not real-time)","role":"Context / inherited features","n":1866},{"name":"Trailing P/E","series":"PE_TRAILING","source":"multpl.com S\u0026P 500 P/E","kind":"REAL","coverage":"1871-01..2026-06","last_obs":"2026-06-01","lag_days":95,"effective_known_date":"2026-09-04","staleness_days":171,"vintage":"LATEST REVISED (not real-time). Forward P/E unavailable; not fabricated","role":"Context / inherited features","n":1866},{"name":"W5000","series":"W5000","source":"Yahoo ^W5000 price index","kind":"PROXY","coverage":"2000-01..2026-11","last_obs":"2026-11-19","lag_days":1,"effective_known_date":"2026-11-19","staleness_days":1,"vintage":"LATEST REVISED (not real-time). Price index, NOT total market cap","role":"Buffett Indicator numerator","n":6663},{"name":"GDP","series":"GDP","source":"FRED nominal GDP (quarterly)","kind":"REAL","coverage":"1947-01..2026-07","last_obs":"2026-07-01","lag_days":130,"effective_known_date":"2026-11-08","staleness_days":141,"vintage":"LATEST REVISED (not real-time). Latest revised, 130-day lag","role":"Buffett denominator, recession pressure","n":319},{"name":"WALCL","series":"WALCL","source":"FRED Federal Reserve total assets","kind":"REAL","coverage":"2002-12..2026-11","last_obs":"2026-11-18","lag_days":8,"effective_known_date":"2026-11-19","staleness_days":8,"vintage":"LATEST REVISED (not real-time). Latest revised, 8-day lag","role":"Liquidity stress","n":1249},{"name":"M2SL","series":"M2SL","source":"FRED M2 money stock","kind":"REAL","coverage":"1959-01..2026-09","last_obs":"2026-09-01","lag_days":75,"effective_known_date":"2026-11-15","staleness_days":79,"vintage":"LATEST REVISED (not real-time). Latest revised, 75-day lag","role":"Liquidity stress","n":813},{"name":"NFCI","series":"NFCI","source":"FRED Chicago Fed financial conditions","kind":"REAL","coverage":"1971-01..2026-11","last_obs":"2026-11-13","lag_days":10,"effective_known_date":"2026-11-16","staleness_days":13,"vintage":"LATEST REVISED (not real-time). Latest revised, 10-day lag","role":"Recession / liquidity stress","n":2915},{"name":"DFII10","series":"DFII10","source":"FRED 10Y TIPS real yield","kind":"REAL","coverage":"2003-01..2026-11","last_obs":"2026-11-18","lag_days":1,"effective_known_date":"2026-11-19","staleness_days":1,"vintage":"LATEST REVISED (not real-time). Latest revised, 1-day lag","role":"Valuation layer (real yield)","n":5974},{"name":"BAMLH0A0HYM2","series":"BAMLH0A0HYM2","source":"FRED ICE BofA US High Yield OAS","kind":"REAL","coverage":"2023-11..2026-11","last_obs":"2026-11-18","lag_days":1,"effective_known_date":"2026-11-19","staleness_days":1,"vintage":"LATEST REVISED (not real-time). Only since 2023-11; fallback to HYG/LQD","role":"Independent Credit Stress layer","n":786},{"name":"T10Y2Y","series":"T10Y2Y","source":"FRED 10Y minus 2Y Treasury curve","kind":"REAL","coverage":"1976-06..2026-11","last_obs":"2026-11-19","lag_days":1,"effective_known_date":"2026-11-19","staleness_days":1,"vintage":"LATEST REVISED (not real-time). Latest revised, 1-day lag","role":"Funding / curve stress","n":12614},{"name":"FNG","series":"FNG","source":"CNN Fear \u0026 Greed graphdata API","kind":"CONTEXT","coverage":"2025-11..2026-11","last_obs":"2026-11-20","lag_days":0,"effective_known_date":"2026-11-19","staleness_days":0,"vintage":"LATEST REVISED (not real-time). ~1 year of history; zero weight","role":"Display only","n":252},{"name":"Fear \u0026 Greed (constructed)","series":"fear_greed_constructed","source":"Constructed from 7 long-history price/macro series","kind":"CONSTRUCTED","coverage":"2000-now","last_obs":"daily","lag_days":0,"effective_known_date":"2026-11-19","staleness_days":0,"vintage":"derived from cached inputs. Zero weight in the Buying Score","role":"Rare detector condition; display context","n":0}],"score_inputs":[{"name":"Vix","raw_display":"28.440","layer":"Opportunity","transform":"Fixed VIX knots: \u003c20 low, 20-30 moderate, 30-40 strong, \u003e50 maximum","source":"VIX (CBOE ^VIX)","normalised":47.2,"weight_pct":12.5,"contribution":5.9},{"name":"Drawdown","raw_display":"0.081","layer":"Opportunity","transform":"Fixed drawdown knots, accelerating","source":"SPY raw close vs running all-time high","normalised":19.34,"weight_pct":12.5,"contribution":2.42},{"name":"Above 200Dma","raw_display":"60.000","layer":"Opportunity","transform":"Inverted % above 200DMA, fixed knots","source":"10-ETF breadth universe (sector SPDRs, RSP, IWM)","normalised":40.0,"weight_pct":10.0,"contribution":4.0},{"name":"Below 200Dma","raw_display":"0.024","layer":"Opportunity","transform":"Fixed distance knots","source":"SPY raw close vs 200-day mean","normalised":54.76,"weight_pct":7.5,"contribution":4.11},{"name":"Putcall","raw_display":"0.029","layer":"Opportunity","transform":"Fixed term-structure knots; 50 = neutral if unavailable","source":"^VIX9D / ^VIX - 1","normalised":66.53,"weight_pct":5.0,"contribution":3.33},{"name":"Mcclellan","raw_display":"-0.004","layer":"Opportunity","transform":"Expanding PIT percentile, squared","source":"RSP/SPY 19-39 day EMA spread","normalised":0.01,"weight_pct":2.5,"contribution":0.0},{"name":"Shiller CAPE","raw_display":"41.000","layer":"Valuation","transform":"Expanding PIT percentile, inverted, ^1.5","source":"multpl Shiller CAPE","normalised":0.6,"weight_pct":6.0,"contribution":0.04},{"name":"Buffett Indicator","raw_display":"2.213","layer":"Valuation","transform":"Expanding PIT percentile, inverted, ^1.5","source":"^W5000 price index / FRED GDP","normalised":0.4,"weight_pct":6.0,"contribution":0.02},{"name":"Earnings Yield","raw_display":"3.960","layer":"Valuation","transform":"Expanding PIT percentile, ^1.5","source":"multpl trailing earnings yield","normalised":21.2,"weight_pct":6.0,"contribution":1.27},{"name":"Equity Risk Premium","raw_display":"-1.092","layer":"Valuation","transform":"Expanding PIT percentile, ^1.5","source":"Earnings yield - ^TNX","normalised":5.2,"weight_pct":6.0,"contribution":0.31},{"name":"Real Yield (10Y TIPS)","raw_display":"2.880","layer":"Valuation","transform":"Expanding PIT percentile, inverted, ^1.5","source":"FRED DFII10","normalised":0.0,"weight_pct":6.0,"contribution":0.0},{"name":"Risk Modifier","raw_display":"Moderate","layer":"Risk","transform":"Fixed meter-to-points map","source":"5 worst-of drawdown / macro stress sub-signals","normalised":70.0,"weight_pct":20.0,"contribution":14.0},{"name":"Drawdown Bonus (additive, after base)","raw_display":"8.11% drawdown","layer":"Bonus","transform":"Fixed VOO drawdown bonus table (5%=0, 10%=+5, 20%=+20, 40%=+50)","source":"SPY raw close vs all-time high","normalised":null,"weight_pct":100.0,"contribution":3.1}],"price_snapshot":{"dates":["2026-11-11","2026-11-12","2026-11-13","2026-11-16","2026-11-17","2026-11-18","2026-11-19","2026-11-20"],"series":{"SPY":[759.81,757.12,754.37,739.95,732.44,730.2,715.87,null],"QQQ":[690.38,688.17,679.89,661.75,656.95,659.51,645.04,null],"VIX":[17.49,18.7,19.3,22.91,25.46,24.56,28.44,28.71],"HYG":[77.35,76.98,76.94,76.73,76.63,76.65,76.53,null],"LQD":[103.96,103.05,102.81,102.8,102.74,103.15,103.08,null],"RSP":[222.65,220.72,221.16,218.93,215.76,215.43,211.63,null],"IWM":[283.09,278.44,277.54,272.94,269.05,270.12,264.22,null]}},"verdict":[{"level":"OK","text":"Price levels use raw close; adjusted close is reserved for forward outcome labels, so dividend/split adjustments cannot leak into level features."},{"level":"OK","text":"Every macro input is aligned by FIRST-KNOWN DATE (nominal date + publication lag) and then forward-filled; expanding percentiles use only prior observations."},{"level":"OK","text":"No series is fabricated. If a source is unavailable or too short, it is flagged and replaced by a labelled proxy or left at a neutral 50."},{"level":"FIXED","text":"The inherited price loader hard-coded 2026-11-16, which would have frozen a daily refresh. The operational path now resolves the as-of date from the data itself."},{"level":"OK","text":"One price file currently contains a row dated after the scoring date (VIX). All frames are truncated at the SPY anchor date, so that row cannot enter the score; the source inventory flags it explicitly."},{"level":"CAVEAT","text":"FRED and multpl provide LATEST REVISED vintages, not as-first-published real-time values. Historical percentiles therefore carry a small, unavoidable revision look-ahead."},{"level":"CAVEAT","text":"CAPE, earnings yield and P/E carry a conservative 95-day publication lag; the value knowable today is months old by design. This is disclosed rather than filled with a fresher guess."},{"level":"CAVEAT","text":"HY OAS begins 2023-11-20, so long-history credit stress falls back to a disclosed HYG/LQD price proxy. The TED-like funding signal is a proxy: literal LIBOR TED ended in 2021."},{"level":"CAVEAT","text":"McClellan, put/call, advance/decline and % above 200DMA are price-based proxies built from ETFs. They are NOT exchange breadth or options tape."},{"level":"CAVEAT","text":"The Buffett Indicator uses the ^W5000 price index divided by GDP, not total market capitalisation. Forward P/E is excluded because no genuine free historical vintage exists."},{"level":"CAVEAT","text":"CNN Fear \u0026 Greed has roughly one year of free history, so it is display-only with zero weight. The sector ETF universe contains surviving funds only (no delisted-fund database)."},{"level":"VERDICT","text":"Legitimate for a transparent, reproducible cash-deployment aid using free public data. NOT institutional-grade real-time data, and NOT a return forecast. Proxies and revision caveats are material and are listed here rather than buried."}],"checks":{"no_fabricated_series":true,"pit_first_known_date_alignment":true,"dynamic_as_of":true,"proxies_disclosed":true,"raw_close_for_levels":true,"real_time_vintages":false}}}</script>
+<script>/* v7.1 renderer — pure builders, tab controller, Simple/Expert switch, ops panes.
+ *
+ * Navigation fix: every tab button carries a real id AND clicks are delegated
+ * from the persistent #tabbar container. The WHY pane is rebuilt on a mode
+ * switch, so its switch is delegated from the persistent #pane-why container.
+ * This is why the original v7 tabs did nothing in a real browser.
+ */
+const D = JSON.parse(document.getElementById('payload').textContent);
+let activeTab = 'decision';
+let expert = false;
+const TABS = [
+  ['decision','Decision'],
+  ['regime','Market Regime'],
+  ['credit','Credit Stress'],
+  ['internals','Market Internals'],
+  ['cost','Opportunity Cost'],
+  ['why','WHY THIS SCORE?'],
+  ['data','DATA &amp; SOURCES'],
+  ['analogues','Historical Analogues'],
+  ['ops','OPERATIONS'],
+  ['method','Method']
+];
+
+function esc(v){
+  if (v === null || v === undefined) return '';
+  return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function num(v,d){
+  if (v === null || v === undefined || isNaN(v)) return 'n/a';
+  return Number(v).toFixed(d === undefined ? 0 : d);
+}
+function colorFor(s){
+  if (s >= 90) return '#17745a';
+  if (s >= 60) return '#2b8c6e';
+  if (s >= 40) return '#1d6f8c';
+  if (s >= 20) return '#a26616';
+  return '#ad342d';
+}
+function scoreBar(s){
+  return '<div class="scorebar"><i style="width:' + Number(s) + '%;background:' + colorFor(s) + '"></i></div>';
+}
+function badge(state){
+  const s = String(state);
+  let cls = 'no';
+  if (s === 'YES' || s === 'BULL' || s === 'High' || s === 'OK' || s === 'REAL') cls = 'ok';
+  else if (s === 'WATCHLIST' || s === 'CORRECTION' || s === 'Moderate' || s === 'CAVEAT'
+           || s === 'PROXY' || s === 'CONSTRUCTED' || s === 'FIXED') cls = 'mid';
+  else if (s === 'BEAR' || s === 'PANIC' || s === 'VERDICT') cls = 'bear';
+  return '<span class="badge ' + cls + '">' + esc(s) + '</span>';
+}
+function kv(label, value){
+  return '<div class="wrow"><span class="wname">' + esc(label) + '</span><span class="wval">'
+    + esc(value) + '</span></div>';
+}
+function table(head, rows){
+  return '<div class="scroll"><table><thead><tr>' + head.map(function(h){
+    return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' + rows.join('')
+    + '</tbody></table></div>';
+}
+
+const RENDER = {};
+
+RENDER.meta = function(){
+  const m = D.meta;
+  let h = '<span class="pill key">AS OF ' + esc(m.as_of) + '</span>'
+    + '<span class="pill">4 SEPARATE CONCEPTS</span>'
+    + '<span class="pill">NOT A FORECAST ENGINE</span>';
+  const o = D.ops || {};
+  if (o.status && o.status.last_run) h += '<span class="pill">DAILY RUN ' + esc(o.status.last_run.slice(0,10)) + '</span>';
+  return h;
+};
+
+RENDER.hero = function(){
+  const h = D.hero;
+  return '<div class="hero"><div class="hgrid">'
+    + '<div class="hcell"><div class="hlabel">Market Regime</div>'
+      + '<div class="hval">' + esc(h.market_regime) + '</div>'
+      + '<div class="hsub">' + esc(h.regime_confidence) + ' confidence</div></div>'
+    + '<div class="hcell"><div class="hlabel">Valuation</div>'
+      + '<div class="hval">' + esc(h.valuation) + '</div>'
+      + '<div class="hsub">' + num(D.valuation.score,1) + '/100</div></div>'
+    + '<div class="hcell"><div class="hlabel">Opportunity</div>'
+      + '<div class="hval">' + esc(h.opportunity) + '</div>'
+      + '<div class="hsub">' + num(D.opportunity.score,1) + '/100</div></div>'
+    + '<div class="hcell"><div class="hlabel">Deployment</div>'
+      + '<div class="hval deploy">' + esc(h.deployment) + '</div>'
+      + '<div class="hsub">' + esc(h.deployment_label) + '</div></div>'
+    + '</div><div class="reason"><b>Reason:</b> ' + esc(h.reason) + '</div></div>';
+};
+
+RENDER.tabs = function(){
+  return TABS.map(function(t){
+    return '<button type="button" id="tab-' + t[0] + '" data-tab="' + t[0] + '" class="'
+      + (t[0]===activeTab?'active':'') + '">' + t[1] + '</button>';
+  }).join('');
+};
+
+RENDER.decision = function(){
+  const v = D.instruments.VOO, q = D.instruments.QQQ;
+  let h = '<section><div class="sechead"><span class="secnum">DEPLOYMENT</span>'
+    + '<h2>Cash deployment guidance</h2>'
+    + '<span class="sechnote">Purchase pacing only — never a market-direction call</span></div><div class="qgrid3">';
+  [['VOO',v],['QQQ',q]].forEach(function(pair){
+    const name = pair[0], x = pair[1], dep = x.deployment;
+    const pct = D.ops && D.ops.percentiles ? D.ops.percentiles[name] : null;
+    h += '<div class="qcard"><div class="qlabel">' + name + ' BUYING SCORE</div>'
+      + '<div class="qans">' + num(x.score,1) + '/100</div>'
+      + '<div class="qlab2">' + esc(x.label) + '</div>' + scoreBar(x.score)
+      + '<div class="qdet"><b>Deploy ' + dep.percent + '%:</b> ' + esc(dep.label) + '<br>'
+      + 'Valuation ' + num(D.valuation.score,1) + ' · Opportunity ' + num(D.opportunity.score,1)
+      + ' · Risk ' + esc(D.risk.meter) + ' · bonus ' + num(x.drawdown_bonus,1) + '<br>'
+      + 'Historical percentile ' + (pct===null?'n/a':num(pct,1) + 'th') + '<br>'
+      + 'Rare detector ' + badge(x.detector.state) + '</div></div>';
+  });
+  h += '<div class="qcard"><div class="qlabel">DEPLOYMENT LADDER</div>'
+    + '<div style="margin-top:10px">'
+    + [[90,'100%','Rare opportunity'],[80,'75%','Aggressive'],[60,'50%','Moderate'],
+       [40,'25%','Small'],[0,'0%','Pause lump sum']].map(function(r){
+        return '<div class="wrow"><span class="wname">' + r[2] + '</span><span class="wval">' + r[1] + '</span></div>';
+      }).join('') + '</div></div></div>';
+  h += '</section><section><div class="sechead"><span class="secnum">WHAT WOULD CHANGE IT</span>'
+    + '<h2>Sensitivity — if conditions deteriorated</h2></div><div class="card"><div class="scroll"><table>'
+    + '<thead><tr><th>Scenario</th><th>Score</th><th>Change</th><th>Deployment</th><th>Band</th></tr></thead><tbody>';
+  D.sensitivity.forEach(function(s){
+    h += '<tr><td>' + esc(s.scenario) + '</td><td>' + num(s.score,1) + '</td><td>+'
+      + num(s.change,1) + '</td><td>' + s.deployment_pct + '%</td><td>' + esc(s.label) + '</td></tr>';
+  });
+  h += '</tbody></table></div><p class="note" style="margin-top:10px">Each scenario changes only the '
+    + 'named inputs and holds everything else at today\'s values. These are mechanical '
+    + 'recomputations, not forecasts.</p></div></section>';
+  return h;
+};
+
+RENDER.regime = function(){
+  const r = D.regime;
+  let h = '<section><div class="sechead"><span class="secnum">TOP PANEL</span>'
+    + '<h2>Market Regime — ' + esc(r.state) + ' (' + esc(r.confidence) + ' confidence)</h2></div>'
+    + '<div class="qgrid4">';
+  Object.keys(r.inputs).forEach(function(k){
+    const x = r.inputs[k];
+    h += '<div class="qcard"><div class="qlabel">' + esc(k) + '</div>'
+      + '<div class="qans small">' + (typeof x.raw === 'number' ? num(x.raw, x.raw < 1 ? 3 : 1) : esc(x.raw))
+      + '</div><div class="qlab2">' + badge(x.state) + '</div>'
+      + '<div class="qdet">' + esc(x.unit || '') + '</div></div>';
+  });
+  h += '</div><div style="height:14px"></div><div class="card">'
+    + '<div class="wrow"><span class="wname">Vote distribution</span><span class="wval">'
+    + Object.keys(r.votes).map(function(k){ return k + ' ' + r.votes[k]; }).join(' · ')
+    + '</span></div><div class="wrow"><span class="wname">Agreement</span><span class="wval">'
+    + num(r.agreement_pct,0) + '%</span></div>'
+    + '<p class="note" style="margin-top:10px">' + esc(r.rule) + '</p></div></section>';
+  return h;
+};
+
+RENDER.credit = function(){
+  const c = D.credit;
+  let h = '<section><div class="sechead"><span class="secnum">INDEPENDENT LAYER</span>'
+    + '<h2>Credit Stress Score — ' + num(c.score,1) + '/100 (' + esc(c.label) + ')</h2></div>'
+    + '<div class="card"><div class="scroll"><table><thead><tr><th>Input</th><th>Raw</th>'
+    + '<th>Normalised</th><th>Weight</th><th>Contribution</th><th>Note</th></tr></thead><tbody>';
+  Object.keys(c.components).forEach(function(k){
+    const x = c.components[k];
+    const raw = (x.raw && typeof x.raw === 'object') ? JSON.stringify(x.raw) :
+                (x.raw === null ? 'n/a' : (typeof x.raw === 'number' ? num(x.raw,3) : esc(x.raw)));
+    h += '<tr><td>' + esc(k.replace(/_/g,' ')) + '</td><td>' + raw + '</td><td>'
+      + num(x.normalised,1) + '</td><td>' + Math.round(x.weight*100) + '%</td><td>'
+      + num(x.contribution,1) + '</td><td class="lt">' + esc(x.note) + '</td></tr>';
+  });
+  h += '</tbody></table></div><p class="note" style="margin-top:10px">' + esc(c.note)
+    + '</p></div></section>';
+  return h;
+};
+
+RENDER.internals = function(){
+  const x = D.internals;
+  let h = '<section><div class="sechead"><span class="secnum">HIDDEN WEAKNESS</span>'
+    + '<h2>Market Internals — ' + esc(x.label) + '</h2></div>'
+    + '<div class="card"><div class="scroll"><table><thead><tr><th>Input</th><th>Raw</th>'
+    + '<th>Weakness score</th><th>Weight</th><th>Contribution</th><th>Definition</th></tr></thead><tbody>';
+  Object.keys(x.components).forEach(function(k){
+    const c = x.components[k];
+    h += '<tr><td>' + esc(k.replace(/_/g,' ')) + '</td><td>' + num(c.raw,2) + ' ' + esc(c.unit||'')
+      + '</td><td>' + num(c.normalised,1) + '</td><td>' + Math.round(c.weight*100) + '%</td><td>'
+      + num(c.contribution,1) + '</td><td class="lt">' + esc(c.note) + '</td></tr>';
+  });
+  h += '</tbody></table></div><p class="note" style="margin-top:10px">' + esc(x.note)
+    + '</p></div></section>';
+  return h;
+};
+
+RENDER.cost = function(){
+  const c = D.instruments.VOO.opportunity_cost;
+  let h = '<section><div class="sechead"><span class="secnum">OPPORTUNITY COST</span>'
+    + '<h2>Is waiting for a correction historically beneficial?</h2></div><div class="card">'
+    + '<p class="note">Current VOO Buying Score <b>' + num(c.current_score,1)
+    + '</b> at a ' + num(c.current_drawdown_pct,1) + '% drawdown. The scenarios below replace '
+    + 'only the drawdown input and hold all other conditions at today\'s values.</p>'
+    + '<div class="scroll" style="margin-top:12px"><table><thead><tr><th>Wait for</th>'
+    + '<th>Status</th><th>Score then</th><th>Improvement</th><th>Hist. frequency</th>'
+    + '<th>Median next 12M</th><th>n</th></tr></thead><tbody>';
+  c.scenarios.forEach(function(s){
+    h += '<tr><td>' + s.correction_pct + '% correction</td><td class="lt">'
+      + esc(s.status || 'wait required') + '</td><td>' + num(s.score_at_scenario,1)
+      + '</td><td>+' + num(s.score_improvement,1) + '</td><td>' + num(s.historical_freq_pct,1)
+      + '%</td><td>' + (s.median_next_12m_pct===null?'n/a':num(s.median_next_12m_pct,1)+'%')
+      + '</td><td>' + s.n_first_crossings + '</td></tr>';
+  });
+  h += '</tbody></table></div><p class="note" style="margin-top:12px">' + esc(c.note)
+    + '</p></div></section>';
+  return h;
+};
+
+function explainTable(title, ex){
+  let h = '<h3>' + esc(title) + ' = ' + num(ex.final,1) + '</h3>'
+    + '<div class="formula">' + esc(ex.formula) + '</div>'
+    + '<div class="scroll" style="margin-top:10px"><table><thead><tr><th>Contributor</th>'
+    + '<th>Raw</th><th>Normalised</th><th>Weight</th><th>Final contribution</th>'
+    + '<th class="expert-only">Δ vs neutral</th></tr></thead><tbody>';
+  ex.components.forEach(function(c){
+    const raw = (c.raw !== null && typeof c.raw === 'object') ? JSON.stringify(c.raw)
+              : (c.raw === null ? 'n/a' : (typeof c.raw === 'number' ? num(c.raw,3) : esc(c.raw)));
+    h += '<tr><td>' + esc(c.name) + '</td><td>' + raw + '</td><td>' + num(c.normalised,1)
+      + '</td><td>' + (c.weight*100).toFixed(1) + '%</td><td>' + num(c.contribution,2)
+      + '</td><td class="expert-only">' + (c.delta_vs_neutral>=0?'+':'') + num(c.delta_vs_neutral,2)
+      + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  h += '<div class="formula" style="margin-top:10px">' + esc(ex.reconciliation) + '</div>';
+  h += '<div class="two" style="margin-top:12px"><div><b>Biggest positive contributors</b><ol class="clean">'
+    + ex.top_positive.map(function(p){ return '<li>' + esc(p.name) + ' (+' + num(p.contribution,1)
+      + ' pts)</li>'; }).join('') + '</ol></div><div><b>Biggest negative contributors</b><ol class="clean">'
+    + ex.top_negative.map(function(p){ return '<li>' + esc(p.name) + ' (' + num(p.contribution,1)
+      + ' pts; Δ ' + (p.delta_vs_neutral>=0?'+':'') + num(p.delta_vs_neutral,1) + ')</li>'; }).join('')
+    + '</ol></div></div>';
+  return h;
+}
+
+RENDER.why = function(){
+  const v = D.instruments.VOO;
+  let h = '<section><div class="sechead"><span class="secnum">EXPLAINABILITY</span>'
+    + '<h2>Why this score?</h2><span class="sechnote">Every point is traceable</span></div>'
+    + '<div class="card"><div class="switch" id="modeSwitch">'
+    + '<button type="button" data-mode="simple" class="' + (!expert?'active':'') + '">Simple Mode</button>'
+    + '<button type="button" data-mode="expert" class="' + (expert?'active':'') + '">Expert Mode</button></div>'
+    + '<p class="note" style="margin-top:10px">Expert Mode reveals raw values, percentiles, '
+    + 'transformations, weighting, intermediate calculations and the final formula. '
+    + 'No black-box calculations.</p></div></section>';
+
+  h += '<section><div class="card">' + explainTable('VOO Buying Score', v.explain)
+    + '<h3>Sensitivity — what would improve the score?</h3><div class="scroll"><table><thead><tr>'
+    + '<th>Change</th><th>New score</th><th>Change</th><th>Deployment</th></tr></thead><tbody>'
+    + D.sensitivity.map(function(s){ return '<tr><td>' + esc(s.scenario) + '</td><td>'
+      + num(s.score,1) + '</td><td>+' + num(s.change,1) + '</td><td>' + s.deployment_pct
+      + '%</td></tr>'; }).join('') + '</tbody></table></div></div></section>';
+
+  h += '<section><div class="card">' + explainTable('QQQ Buying Score', D.instruments.QQQ.explain)
+    + '</div></section>';
+  h += '<section><div class="two"><div class="card">' + explainTable('Valuation Score', D.valuation.explain)
+    + '</div><div class="card">' + explainTable('Opportunity Score', D.opportunity.explain)
+    + '</div></div></section>';
+
+  h += '<section><div class="sechead"><span class="secnum">AUDIT TRAIL</span>'
+    + '<h2>Score Audit Trail — reproduce it manually</h2></div><div class="card">'
+    + '<div class="scroll"><table><thead><tr><th>Step</th><th>Value</th><th>Operation</th>'
+    + '<th>Result</th></tr></thead><tbody>'
+    + v.audit.map(function(a){ return '<tr><td>' + esc(a.step) + '</td><td>' + esc(a.value)
+      + '</td><td>' + esc(a.operation) + '</td><td class="audit-num">' + num(a.result,1)
+      + '</td></tr>'; }).join('') + '</tbody></table></div>'
+    + '<p class="note" style="margin-top:10px">Valuation ' + num(D.valuation.score,1)
+      + ' × 30% + Opportunity ' + num(D.opportunity.score,1) + ' × 50% + Risk '
+      + num(D.risk.opportunity_score,0) + ' × 20% + bonus ' + num(v.drawdown_bonus,1)
+      + ' = <b>' + num(v.score,1) + '</b>. The weighted layer components are listed '
+      + 'in the VOO table above.</p></div></section>';
+
+  h += '<section><div class="sechead"><span class="secnum">FORMULA DISCLOSURE</span>'
+    + '<h2>Every indicator: definition, formula, direction, reason</h2></div>'
+    + '<div class="qgrid3">';
+  Object.keys(D.formula_disclosure).forEach(function(k){
+    const f = D.formula_disclosure[k];
+    const c = D.opportunity.components[k] || {};
+    h += '<div class="qcard"><div class="qlabel">' + esc(k.replace(/_/g,' ')) + '</div>'
+      + '<div class="kv" style="margin-top:8px"><b>Definition:</b> ' + esc(f.definition) + '</div>'
+      + '<div class="kv"><b>Formula:</b></div><div class="formula">' + esc(f.formula) + '</div>'
+      + '<div class="kv"><b>Direction:</b> ' + esc(f.direction) + '</div>'
+      + '<div class="kv"><b>Reason:</b> ' + esc(f.reason) + '</div>'
+      + '<div class="kv"><b>Example:</b> ' + esc(f.example) + '</div>'
+      + '<div class="kv"><b>Current:</b> ' + (c.raw===null?'n/a':esc(c.raw))
+      + ' · <b>Contribution:</b> ' + (c.score===undefined?'n/a':num(c.score,1)) + '</div></div>';
+  });
+  h += '</div></section>';
+  return h;
+};
+
+/* ---------------------------------------------------------------------------
+ * DATA & SOURCES — every number that forms the score, with provenance.
+ * ------------------------------------------------------------------------- */
+RENDER.data = function(){
+  const A = D.data_audit || {};
+  const S = A.sources || [], I = A.score_inputs || [], V = A.verdict || [];
+  const sum = A.summary || {};
+  let h = '<section><div class="sechead"><span class="secnum">DATA AUDIT</span>'
+    + '<h2>Is the data legit?</h2><span class="sechnote">As of ' + esc(A.as_of || D.meta.as_of) + '</span></div>'
+    + '<div class="qgrid4">'
+    + '<div class="qcard"><div class="qlabel">INPUT SERIES</div><div class="qans">'
+      + num(sum.n_sources,0) + '</div><div class="qdet">distinct source series feeding the score</div></div>'
+    + '<div class="qcard"><div class="qlabel">DISCLOSED PROXIES</div><div class="qans">'
+      + num(sum.n_proxies,0) + '</div><div class="qdet">no exchange breadth / options tape / market cap feed</div></div>'
+    + '<div class="qcard"><div class="qlabel">OLDEST EFFECTIVE INPUT</div><div class="qans small">'
+      + num(sum.max_staleness_days,0) + ' d</div><div class="qdet">age of the stalest value actually knowable on the scoring date</div></div>'
+    + '<div class="qcard"><div class="qlabel">FABRICATED SERIES</div><div class="qans">0</div>'
+      + '<div class="qdet">unavailable data is never invented; it is flagged and proxied</div></div>'
+    + '</div></section>';
+
+  h += '<section><div class="card"><h3>Verdict</h3><ul class="clean">'
+    + V.map(function(x){ return '<li><b>' + esc(x.level) + ':</b> ' + esc(x.text) + '</li>'; }).join('')
+    + '</ul></div></section>';
+
+  h += '<section><div class="sechead"><span class="secnum">SCORE INPUT LEDGER</span>'
+    + '<h2>Every input that forms the VOO Buying Score</h2></div><div class="card">'
+    + table(['Input','Raw value','Layer','Transform','Normalised','Weight','Final pts','Source'],
+      I.map(function(x){
+        return '<tr><td>' + esc(x.name) + '</td><td>' + esc(x.raw_display) + '</td><td>'
+          + esc(x.layer) + '</td><td class="lt">' + esc(x.transform) + '</td><td>'
+          + num(x.normalised,1) + '</td><td>' + num(x.weight_pct,1) + '%</td><td class="audit-num">'
+          + num(x.contribution,2) + '</td><td class="lt">' + esc(x.source) + '</td></tr>';
+      }))
+    + '<p class="note" style="margin-top:10px">Final points are the exact values used by the '
+    + 'audit trail on the WHY THIS SCORE tab. Sum of layer contributions plus the drawdown '
+    + 'bonus reproduces the displayed score.</p></div></section>';
+
+  h += '<section><div class="sechead"><span class="secnum">SOURCE INVENTORY</span>'
+    + '<h2>Where each series comes from</h2></div><div class="card">'
+    + table(['Series','Source','Kind','Coverage','Last obs','Lag (d)','Knowable from','Stale (d)','Vintage','Role'],
+      S.map(function(s){
+        return '<tr><td>' + esc(s.name) + '</td><td class="lt">' + esc(s.source) + '</td><td>'
+          + badge(s.kind) + '</td><td>' + esc(s.coverage) + '</td><td>' + esc(s.last_obs)
+          + '</td><td>' + num(s.lag_days,0) + '</td><td>' + esc(s.effective_known_date)
+          + '</td><td>' + num(s.staleness_days,0) + '</td><td class="lt">' + esc(s.vintage)
+          + '</td><td class="lt">' + esc(s.role) + '</td></tr>';
+      }))
+    + '</div></section>';
+
+  const snap = A.price_snapshot || {};
+  const dates = snap.dates || [], series = snap.series || {};
+  h += '<section><div class="sechead"><span class="secnum">RAW PRICE TAPE</span>'
+    + '<h2>Last rows of the actual CSV files used to build features</h2></div><div class="card">'
+    + table(['Date'].concat(Object.keys(series)),
+      dates.map(function(d,i){
+        return '<tr><td>' + esc(d) + '</td>' + Object.keys(series).map(function(k){
+          const v = series[k][i];
+          return '<td>' + (v===null||v===undefined?'n/a':num(v,2)) + '</td>';
+        }).join('') + '</tr>';
+      }))
+    + '<p class="note" style="margin-top:10px">Level features use raw close; adjusted close '
+    + 'is reserved for forward-outcome labels. Snapshot read directly from data/raw/*.csv.</p>'
+    + '</div></section>';
+  return h;
+};
+
+/* ---------------------------------------------------------------------------
+ * OPERATIONS — daily refresh, percentiles, alerts, email.
+ * ------------------------------------------------------------------------- */
+RENDER.ops = function(){
+  const O = D.ops || {};
+  const st = O.status || {}, P = O.percentiles || {}, rules = O.rules || [];
+  const alerts = O.recent_alerts || [], hist = O.score_history || [];
+  const emcfg = O.email_config || {}, prev = O.email_preview || {};
+  let h = '<section><div class="sechead"><span class="secnum">OPERATIONS</span>'
+    + '<h2>Never miss a rare buying opportunity</h2>'
+    + '<span class="sechnote">Daily refresh · score · rank · alert</span></div>'
+    + '<div class="qgrid4">'
+    + '<div class="qcard"><div class="qlabel">LAST DAILY RUN</div><div class="qans small">'
+      + esc(st.last_run ? st.last_run.slice(0,16).replace('T',' ') : 'not run yet')
+      + '</div><div class="qdet">' + esc(st.mode || 'offline') + ' · ' + esc(st.status || 'idle') + '</div></div>'
+    + '<div class="qcard"><div class="qlabel">DATA REFRESH</div><div class="qans small">'
+      + esc(st.refresh_status || 'not run') + '</div><div class="qdet">'
+      + num(st.sources_updated,0) + ' sources updated · ' + num(st.sources_failed,0) + ' kept cached</div></div>'
+    + '<div class="qcard"><div class="qlabel">VOO PERCENTILE</div><div class="qans">'
+      + num(P.VOO,1) + '</div><div class="qdet">versus month-end scores since 2000</div></div>'
+    + '<div class="qcard"><div class="qlabel">EMAIL DELIVERY</div><div class="qans small">'
+      + esc(emcfg.mode || 'dry-run') + '</div><div class="qdet">'
+      + (emcfg.configured ? 'SMTP configured' : 'Set SMTP env vars to enable sending') + '</div></div>'
+    + '</div></section>';
+
+  h += '<section><div class="sechead"><span class="secnum">ALERT RULES</span>'
+    + '<h2>What triggers an email — and what never does</h2></div><div class="card">'
+    + table(['Rule','Trigger','Current','State','Last fired'],
+      rules.map(function(r){
+        return '<tr><td>' + esc(r.name) + '</td><td class="lt">' + esc(r.trigger)
+          + '</td><td>' + esc(r.current) + '</td><td>' + badge(r.state)
+          + '</td><td>' + esc(r.last_fired || 'never') + '</td></tr>';
+      }))
+    + '<p class="note" style="margin-top:10px">Daily runs with no crossing, no regime change '
+    + 'and no detector trigger send nothing. One weekly summary is the only recurring email. '
+    + 'State is persisted so a repeat run cannot spam.</p></div></section>';
+
+  h += '<section><div class="two"><div class="card"><h3>Score history (recent)</h3>'
+    + table(['Date','VOO','QQQ','Regime','Detector'],
+      hist.slice(-14).reverse().map(function(x){
+        return '<tr><td>' + esc(x.date) + '</td><td>' + num(x.voo,1) + '</td><td>'
+          + num(x.qqq,1) + '</td><td>' + esc(x.regime) + '</td><td>' + esc(x.detector) + '</td></tr>';
+      }))
+    + '</div><div class="card"><h3>Latest alert / email preview</h3>'
+    + kv('Subject', prev.subject || 'no email generated yet')
+    + kv('Archived alert', prev.latest_type || 'n/a')
+    + kv('Date', prev.date || D.meta.as_of)
+    + kv('VOO / QQQ', prev.scores || (num(D.instruments.VOO.score,1) + ' / ' + num(D.instruments.QQQ.score,1)))
+    + kv('Percentile', prev.percentile || (num(P.VOO,1) + ' / ' + num(P.QQQ,1)))
+    + kv('Regime', prev.regime || D.hero.market_regime)
+    + kv('Deployment', prev.deployment || D.hero.deployment)
+    + '<p class="note" style="margin-top:10px">Preview of the most recent email archived '
+    + 'in data/ops/outbox/. Full HTML, text and JSON copies are kept there; delivery is '
+    + 'dry-run unless SMTP credentials are set.</p>'
+    + '<p class="note" style="margin-top:8px">' + esc(O.weekly_summary && O.weekly_summary.text
+        ? O.weekly_summary.text : 'Weekly summary is generated on the first run of each ISO week.')
+    + '</p></div></div></section>';
+
+  h += '<section><div class="sechead"><span class="secnum">ALERT LOG</span>'
+    + '<h2>Emails evaluated</h2></div><div class="card">'
+    + (alerts.length
+      ? table(['Time','Type','Priority','Delivery','Detail'], alerts.slice().reverse().map(function(a){
+          return '<tr><td>' + esc(a.time ? a.time.slice(0,16).replace('T',' ') : '') + '</td><td>'
+            + esc(a.type) + '</td><td>' + esc(a.priority || 'normal') + '</td><td>'
+            + esc(a.delivery || 'dry-run') + '</td><td class="lt">' + esc(a.detail) + '</td></tr>';
+        }))
+      : '<p class="note">No alerts yet. That is expected: today does not cross a threshold, '
+        + 'the regime has not changed and the rare detector is not triggered.</p>')
+    + '</div></section>';
+
+  h += '<section><div class="sechead"><span class="secnum">SETUP</span>'
+    + '<h2>How the daily run is wired</h2></div><div class="card">'
+    + '<div class="formula">' + esc(O.setup && O.setup.command
+        ? O.setup.command
+        : 'python pipeline/ops_daily.py --no-refresh --dry-run') + '</div>'
+    + '<ul class="clean" style="margin-top:12px">'
+    + (O.setup && O.setup.notes ? O.setup.notes.map(function(n){ return '<li>' + esc(n) + '</li>'; }).join('')
+      : '<li>Run the pipeline daily; it refreshes data, recomputes the score, ranks it against history and evaluates alerts.</li>')
+    + '</ul></div></section>';
+  return h;
+};
+
+RENDER.analogues = function(){
+  let h = '<section><div class="sechead"><span class="secnum">HISTORICAL ANALOGUES</span>'
+    + '<h2>Today versus five defining selloffs</h2></div><div class="qgrid3">';
+  D.analogues.forEach(function(a){
+    h += '<div class="simcard"><div class="simtop"><span class="simname">' + esc(a.episode)
+      + '</span><span class="simscore">' + num(a.similarity,1) + '%</span></div>'
+      + '<div class="note">' + esc(a.date) + '</div>'
+      + '<div class="simbar"><i style="width:' + a.similarity + '%;background:'
+      + colorFor(a.similarity) + '"></i></div>'
+      + '<div class="simfeat">VIX ' + num(a.features.vix,1) + ' · drawdown '
+      + num(a.features.dd*100,1) + '% · &gt;200DMA ' + num(a.features.above,0) + '%</div></div>';
+  });
+  h += '</div></section><section><div class="sechead"><span class="secnum">VALIDATION</span>'
+    + '<h2>Panic detector on historical stress episodes</h2></div><div class="card">'
+    + '<div class="scroll"><table><thead><tr><th>Date</th><th>Conditions</th><th>Detector</th></tr></thead><tbody>'
+    + D.historical_validation.map(function(x){ return '<tr><td>' + esc(x.date) + '</td><td>'
+      + x.n_conditions + '/5</td><td>' + badge(x.detector) + '</td></tr>'; }).join('')
+    + '</tbody></table></div></div></section>';
+  return h;
+};
+
+RENDER.method = function(){
+  let h = '<section><div class="sechead"><span class="secnum">METHOD</span><h2>Design and limits</h2></div>'
+    + '<div class="card"><p class="note">' + esc(D.meta.philosophy) + ' Inherited: '
+    + esc(D.meta.inherited) + '.</p><h3>Disclosures</h3><ul class="clean">'
+    + D.disclosures.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('')
+    + '</ul></div></section>';
+  return h;
+};
+
+RENDER.footer = function(){
+  return '<div>' + esc(D.meta.version) + ' · generated ' + esc(D.meta.generated_at) + '</div>'
+    + '<div style="margin-top:5px">Observable conditions are not return predictions. '
+    + 'Past episodes do not guarantee future results. Not investment advice.</div>';
+};
+
+function setTab(name){
+  if (!TABS.some(function(t){ return t[0] === name; })) name = 'decision';
+  activeTab = name;
+  TABS.forEach(function(t){
+    const btn = document.getElementById('tab-' + t[0]);
+    const pane = document.getElementById('pane-' + t[0]);
+    if (btn && btn.className !== undefined) btn.className = (t[0]===name?'active':'');
+    if (pane && pane.className !== undefined) pane.className = 'tabpane' + (t[0]===name?' active':'');
+  });
+  try {
+    if (window.location && window.location.hash !== undefined) window.location.hash = name;
+  } catch (e) { /* file:// or sandboxed context */ }
+}
+function setMode(mode){
+  expert = (mode === 'expert');
+  if (document.body && document.body.className !== undefined) document.body.className = expert ? 'expert' : '';
+  RENDER.refreshWhy();
+}
+RENDER.refreshWhy = function(){
+  const pane = document.getElementById('pane-why');
+  if (pane) pane.innerHTML = RENDER.why();
+};
+
+function handleClick(e){
+  const t = e && e.target;
+  if (!t || !t.getAttribute) return;
+  const tab = t.getAttribute('data-tab');
+  if (tab) { setTab(tab); return; }
+  const mode = t.getAttribute('data-mode');
+  if (mode) setMode(mode);
+}
+
+function boot(){
+  document.getElementById('metastrip').innerHTML = RENDER.meta();
+  document.getElementById('hero').innerHTML = RENDER.hero();
+  document.getElementById('tabbar').innerHTML = RENDER.tabs();
+  document.getElementById('pane-decision').innerHTML = RENDER.decision();
+  document.getElementById('pane-regime').innerHTML = RENDER.regime();
+  document.getElementById('pane-credit').innerHTML = RENDER.credit();
+  document.getElementById('pane-internals').innerHTML = RENDER.internals();
+  document.getElementById('pane-cost').innerHTML = RENDER.cost();
+  RENDER.refreshWhy();
+  document.getElementById('pane-data').innerHTML = RENDER.data();
+  document.getElementById('pane-analogues').innerHTML = RENDER.analogues();
+  document.getElementById('pane-ops').innerHTML = RENDER.ops();
+  document.getElementById('pane-method').innerHTML = RENDER.method();
+  document.getElementById('sitefooter').innerHTML = RENDER.footer();
+
+  /* Delegated listeners live on persistent containers, so rebuilding a pane
+     never destroys navigation. Direct button listeners are kept as a fallback. */
+  const bar = document.getElementById('tabbar');
+  if (bar && bar.addEventListener) bar.addEventListener('click', handleClick);
+  const whyPane = document.getElementById('pane-why');
+  if (whyPane && whyPane.addEventListener) whyPane.addEventListener('click', handleClick);
+  if (document.addEventListener) document.addEventListener('click', handleClick);
+  TABS.forEach(function(t){
+    const btn = document.getElementById('tab-' + t[0]);
+    if (btn && btn.addEventListener) btn.addEventListener('click', function(){ setTab(t[0]); });
+  });
+
+  /* Hash deep-link: index_v7.html#data opens the Data tab directly. */
+  try {
+    const hash = window.location && window.location.hash ? window.location.hash.replace('#','') : '';
+    if (hash) setTab(hash);
+  } catch (e) { /* ignore */ }
+}
+boot();
+</script>
+</body>
+</html>

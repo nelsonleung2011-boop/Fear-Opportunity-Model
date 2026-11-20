@@ -1,0 +1,307 @@
+{
+ "status": "OK",
+ "checked_at": "2026-11-20T09:05:01Z",
+ "prices": {
+  "SPY": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6762
+  },
+  "QQQ": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6762
+  },
+  "VIX": {
+   "status": "UPDATED",
+   "added": 1,
+   "from": "2026-11-19",
+   "last": "2026-11-20",
+   "rows": 6765
+  },
+  "TLT": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6118
+  },
+  "TNX": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6756
+  },
+  "IRX": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6756
+  },
+  "HYG": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 4936
+  },
+  "LQD": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6118
+  },
+  "RSP": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 5928
+  },
+  "IWM": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6661
+  },
+  "W5000": {
+   "status": "UPDATED",
+   "added": 1,
+   "from": "2026-11-18",
+   "last": "2026-11-19",
+   "rows": 6663
+  },
+  "SOXX": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6377
+  },
+  "SMH": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6656
+  },
+  "XLC": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 2118
+  },
+  "XLRE": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 2796
+  },
+  "XLB": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6762
+  },
+  "XLE": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6762
+  },
+  "XLF": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6762
+  },
+  "XLI": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6762
+  },
+  "XLK": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6762
+  },
+  "XLP": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6762
+  },
+  "XLU": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6762
+  },
+  "XLV": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6762
+  },
+  "XLY": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6762
+  },
+  "fvx": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6756
+  },
+  "ief": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6118
+  },
+  "shy": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 6118
+  },
+  "_vix9d": {
+   "status": "UPDATED",
+   "added": 0,
+   "from": "2026-11-19",
+   "last": "2026-11-19",
+   "rows": 3995
+  }
+ },
+ "macro": {
+  "WALCL": {
+   "status": "UPDATED",
+   "added": 1,
+   "last": "2026-11-18"
+  },
+  "M2SL": {
+   "status": "UPDATED",
+   "added": 0,
+   "last": "2026-09-01"
+  },
+  "NFCI": {
+   "status": "UPDATED",
+   "added": 0,
+   "last": "2026-11-13"
+  },
+  "GDP": {
+   "status": "UPDATED",
+   "added": 0,
+   "last": "2026-07-01"
+  },
+  "CAPE": {
+   "status": "UPDATED",
+   "added": 0,
+   "last": "2026-11-01"
+  },
+  "DIVIDEND_YIELD": {
+   "status": "UPDATED",
+   "added": 0,
+   "last": "2026-06-30"
+  },
+  "PE_TRAILING": {
+   "status": "UPDATED",
+   "added": 0,
+   "last": "2026-06-01"
+  },
+  "EARNINGS_YIELD": {
+   "status": "UPDATED",
+   "added": 0,
+   "last": "2026-06-01"
+  },
+  "SOXX": {
+   "status": "UPDATED VIA PRICE FILE",
+   "last": "2026-11-19"
+  },
+  "SMH": {
+   "status": "UPDATED VIA PRICE FILE",
+   "last": "2026-11-19"
+  },
+  "W5000": {
+   "status": "UPDATED",
+   "last": "2026-11-19"
+  },
+  "DFII10": {
+   "status": "UPDATED",
+   "added": 1,
+   "last": "2026-11-18"
+  },
+  "BAMLH0A0HYM2": {
+   "status": "UPDATED",
+   "added": 1,
+   "last": "2026-11-18"
+  },
+  "T10Y2Y": {
+   "status": "UPDATED",
+   "added": 1,
+   "last": "2026-11-19"
+  },
+  "FNG": {
+   "status": "UPDATED",
+   "last": "2026-11-20"
+  }
+ },
+ "sources_updated": 40,
+ "sources_failed": 0,
+ "last_dates": {
+  "HYG": "2026-11-19",
+  "IRX": "2026-11-19",
+  "IWM": "2026-11-19",
+  "LQD": "2026-11-19",
+  "QQQ": "2026-11-19",
+  "RSP": "2026-11-19",
+  "SMH": "2026-11-19",
+  "SOXX": "2026-11-19",
+  "SPY": "2026-11-19",
+  "TLT": "2026-11-19",
+  "TNX": "2026-11-19",
+  "VIX": "2026-11-20",
+  "W5000": "2026-11-19",
+  "XLB": "2026-11-19",
+  "XLC": "2026-11-19",
+  "XLE": "2026-11-19",
+  "XLF": "2026-11-19",
+  "XLI": "2026-11-19",
+  "XLK": "2026-11-19",
+  "XLP": "2026-11-19",
+  "XLRE": "2026-11-19",
+  "XLU": "2026-11-19",
+  "XLV": "2026-11-19",
+  "XLY": "2026-11-19",
+  "FVX": "2026-11-19",
+  "IEF": "2026-11-19",
+  "SHY": "2026-11-19",
+  "VIX9D": "2026-11-19"
+ }
+}

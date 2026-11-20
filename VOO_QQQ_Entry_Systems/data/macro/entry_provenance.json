@@ -1,0 +1,48 @@
+{
+  "DFII10": {
+    "source": "FRED fredgraph.csv",
+    "description": "10-Year Treasury Inflation-Indexed Security, Constant Maturity (percent)",
+    "publication_lag_days": 1,
+    "n": 5974,
+    "first": "2003-01-02",
+    "last": "2026-11-18",
+    "vintage": "LATEST REVISED (not real-time)",
+    "status": "OK"
+  },
+  "BAMLH0A0HYM2": {
+    "source": "FRED fredgraph.csv",
+    "description": "ICE BofA US High Yield Index Option-Adjusted Spread (percent)",
+    "publication_lag_days": 1,
+    "n": 786,
+    "first": "2023-11-20",
+    "last": "2026-11-18",
+    "vintage": "LATEST REVISED (not real-time)",
+    "status": "OK"
+  },
+  "T10Y2Y": {
+    "source": "FRED fredgraph.csv",
+    "description": "10-Year Treasury Constant Maturity minus 2-Year (percentage points)",
+    "publication_lag_days": 1,
+    "n": 12614,
+    "first": "1976-06-01",
+    "last": "2026-11-19",
+    "vintage": "LATEST REVISED (not real-time)",
+    "status": "OK"
+  },
+  "FNG": {
+    "source": "CNN production.dataviz.cnn.io fearandgreed/graphdata",
+    "description": "CNN Fear & Greed Index",
+    "publication_lag_days": 0,
+    "n": 252,
+    "first": "2025-11-19",
+    "last": "2026-11-20",
+    "status": "OK (context only)",
+    "usage": "Displayed as current context ONLY. Never scored: ~1 year of history cannot support a since-2000 percentile."
+  },
+  "_meta": {
+    "built_at": "2026-11-19T13:12:00Z",
+    "alignment": "first-known-date = nominal date + publication_lag_days, then ffill",
+    "fallback_rule": "An unavailable or short series is NEVER back-filled or invented. The engine uses a documented price-based proxy and labels it.",
+    "last_refresh": "2026-11-20T09:05:01Z"
+  }
+}
